@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>ai.meettom</string>
+    <key>CFBundleName</key>
+    <string>TOM</string>
+    <key>CFBundleDisplayName</key>
+    <string>TOM</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleExecutable</key>
+    <string>TOM</string>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>TOM needs microphone access to record meeting audio.</string>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>TOM needs screen recording access to capture meeting audio from other applications.</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.productivity</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>© 2026 automatics</string>
+    <key>SUFeedURL</key>
+    <string>https://meettom.ai/updates/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>rRAOtNvPpJjCIRmPIVnbjmJFbEKUyyf3iFNPF4wojoA=</string>
+    <key>SUEnableAutomaticChecks</key>
+    <true/>
+    <key>SUScheduledCheckInterval</key>
+    <integer>86400</integer>
+    <key>SUAllowsAutomaticUpdates</key>
+    <true/>
+</dict>
+</plist>

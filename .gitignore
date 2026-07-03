@@ -1,0 +1,62 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+*storybook.log
+storybook-static
+
+# Node / web (legacy template)
+node_modules/
+yarn.lock
+.next/
+out/
+
+# Plan / internal / local-only
+MIGRATION_PLAN.md
+PROJECT_PLAN.md
+.planning/
+.docs
+.scripts
+.mcp.json
+data/
+.data/
+.keys/
+
+# Claude
+CLAUDE.md
+.claude
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Bot engine
+src/bot-engine/debug/
+
+# Build output
+build/
+dist/
+
+# Mac / editors
+.DS_Store
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*.swn
+
+# Swift / Xcode
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+DerivedData/
