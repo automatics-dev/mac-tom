@@ -8,8 +8,9 @@ struct SidebarSectionHeader: View {
 
     var body: some View {
         HStack {
-            Text(title)
-                .font(.system(size: 11, weight: .regular))
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .semibold))
+                .tracking(0.6)
                 .foregroundColor(.subtleText)
 
             Spacer()

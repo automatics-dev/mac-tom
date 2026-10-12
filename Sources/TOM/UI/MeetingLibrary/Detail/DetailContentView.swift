@@ -25,9 +25,15 @@ struct DetailContent: View {
                     selectedTab = .transcript
                 }
                 if !meeting.recordingPath.isEmpty {
-                    QuickViewTabButton(title: "Video", icon: "play.rectangle", isSelected: selectedTab == .video) {
+                    // Audio-only recordings get a "Player" tab with a waveform
+                    // icon — no video surface, no video/waveform switch.
+                    QuickViewTabButton(
+                        title: meeting.hasVideo ? "Video" : "Player",
+                        icon: meeting.hasVideo ? "play.rectangle" : "waveform",
+                        isSelected: selectedTab == .video
+                    ) {
                         if selectedTab != .video {
-                            tomLog("User action: switched meeting tab → Video (\(meeting.id.uuidString.prefix(8)))")
+                            tomLog("User action: switched meeting tab → \(meeting.hasVideo ? "Video" : "Player") (\(meeting.id.uuidString.prefix(8)))")
                         }
                         selectedTab = .video
                     }
@@ -46,6 +52,10 @@ struct DetailContent: View {
             case .transcript: DetailTranscriptContent(meeting: meeting, playerManager: appState.playerManager)
             case .video:      VideoTabContent(meeting: meeting, playerManager: appState.playerManager)
             }
+        }
+        // A meeting that is transcribing live opens on its Transcript tab.
+        .task(id: meeting.id) {
+            if appState.liveTranscripts[meeting.id] != nil { selectedTab = .transcript }
         }
     }
 }

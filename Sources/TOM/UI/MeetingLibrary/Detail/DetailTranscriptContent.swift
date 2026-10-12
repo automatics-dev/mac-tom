@@ -5,10 +5,13 @@ import SwiftUI
 struct DetailTranscriptContent: View {
     let meeting: Meeting
     @ObservedObject var playerManager: PlayerManager
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         if !playerManager.segments.isEmpty {
             segmentList
+        } else if let live = appState.liveTranscripts[meeting.id] {
+            liveTranscription(live, volatile: appState.liveVolatile[meeting.id] ?? "")
         } else if let transcript = meeting.transcript, !transcript.isEmpty {
             ScrollView {
                 Text(transcript)
@@ -35,6 +38,23 @@ struct DetailTranscriptContent: View {
             }
             .frame(maxWidth: .infinity)
             Spacer()
+        }
+    }
+
+    /// Streaming preview with follow-along scrolling — the newest utterance
+    /// stays visible as text flows in.
+    private func liveTranscription(_ live: String, volatile: String) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LiveTranscriptionView(text: live, volatile: volatile)
+                    .padding(24)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Color.clear.frame(height: 1).id("liveBottom")
+            }
+            .scrollIndicators(.hidden)
+            .onChange(of: live + volatile) { _ in
+                proxy.scrollTo("liveBottom", anchor: .bottom)
+            }
         }
     }
 

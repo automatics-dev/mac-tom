@@ -60,6 +60,21 @@ struct Meeting: Identifiable, Codable {
     }
 }
 
+// MARK: - Meeting Media Helpers
+
+extension Meeting {
+    /// True when the recording on disk actually contains a video track worth
+    /// showing. Voice notes are mic-only by construction; imports and
+    /// recordings are judged by container extension (.wav/.m4a/.mp3 are
+    /// audio-only). Drives whether the player offers a video surface and the
+    /// video/waveform toggle at all.
+    var hasVideo: Bool {
+        guard kind != .voiceNote, !recordingPath.isEmpty else { return false }
+        let ext = (recordingPath as NSString).pathExtension.lowercased()
+        return ext == "mp4" || ext == "mov"
+    }
+}
+
 // MARK: - Meeting Alias Helpers
 
 extension Meeting {
@@ -128,25 +143,40 @@ enum MeetingKind: String, Codable {
 
 // MARK: - Transcript Segment
 
+/// Real per-word timing from Whisper's alignment head. Times are on the
+/// recording timeline (seconds). Drives the karaoke overlay — before these
+/// existed, word position was linearly interpolated across the segment,
+/// which drifts badly on long utterances with pauses.
+struct WordStamp: Codable, Sendable, Equatable {
+    var text: String
+    var start: TimeInterval
+    var end: TimeInterval
+}
+
 struct TranscriptSegment: Identifiable, Codable {
     let id: UUID
     var startTime: TimeInterval
     var endTime: TimeInterval
     var speaker: String
     var text: String
+    /// Word-level timings, nil for recordings made before word timestamps
+    /// were captured (karaoke falls back to interpolation).
+    var words: [WordStamp]?
 
     init(
         id: UUID = UUID(),
         startTime: TimeInterval,
         endTime: TimeInterval,
         speaker: String,
-        text: String
+        text: String,
+        words: [WordStamp]? = nil
     ) {
         self.id = id
         self.startTime = startTime
         self.endTime = endTime
         self.speaker = speaker
         self.text = text
+        self.words = words
     }
 }
 

@@ -96,14 +96,13 @@ struct TOMApp: App {
             }
         }
 
-        MenuBarExtra {
-            MenuBarContent()
-                .environmentObject(appState)
-                .environmentObject(updater)
-        } label: {
-            Image(systemName: appState.isRecording ? "record.circle.fill" : "record.circle")
-                .symbolRenderingMode(appState.isRecording ? .multicolor : .monochrome)
-        }
+        // Menu bar icon: a manually managed NSStatusItem
+        // (StatusItemController), NOT a MenuBarExtra scene.
+        // MenuBarExtra(isInserted:) silently failed to register the item on
+        // macOS 26 after a Sparkle relaunch (1.22.0 shipped unreachable:
+        // no icon, no window, accessory policy). The NSStatusItem is
+        // installed in applicationDidFinishLaunching and toggled from
+        // Settings; the Dock icon is always present as the safety net.
     }
 }
 
@@ -144,7 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
 
             let recordAction = UNNotificationAction(
                 identifier: "RECORD",
-                title: "Start Recording",
+                title: String(localized: "Start Recording"),
                 options: [.foreground]
             )
             let category = UNNotificationCategory(
@@ -170,37 +169,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
             }
         }
 
-        // Window scene NSWindow lazy oluşturulur (applicationDidFinishLaunching anında mevcut değil).
-        // Delegate ataması yerine NotificationCenter ile close olayını dinle (Tuzak 5; RESEARCH Desen 3).
-        // Secondary window'lar (settings/picker/onboarding/meetingDetail) zaten makeWindow() içinde
-        // window.delegate = self ile NSWindowDelegate yolundan tetiklenir; bu observer Window scene
-        // NSWindow'unu da aynı handleWindowClose mantığına dahil eder.
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.handleWindowClose()
-        }
+        // TOM is a regular app: Dock icon always visible (LSUIElement was
+        // removed). No accessory-policy juggling — the old hide-in-menu-bar
+        // lifecycle left the app unreachable when the menu bar icon failed
+        // to register (1.22.0 incident).
+        NSApp.setActivationPolicy(.regular)
 
-        // LSUIElement fix: .accessory policy'deyken bir pencere key olursa .regular'a geç.
-        // Window scene SwiftUI tarafından açılır ama policy değişmez — bu yüzden TextField
-        // key window olamaz ve klavye input gelmiyor. Her key window olayında kontrol et.
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.didBecomeKeyNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            guard NSApp.activationPolicy() != .regular else { return }
-            self?.activateApp()
-        }
+        // Menu bar icon (optional, default on) — deterministic NSStatusItem.
+        StatusItemController.shared.installIfEnabled()
 
         // TOOLBAR-05: Appearance preference restore — view hiyerarşisi kurulmadan önce uygula.
         // .onAppear içinde yapılırsa başlangıçta light→dark flicker oluşur.
-        let prefersDark = UserDefaults.standard.bool(forKey: "tom.prefersDark")
-        NSApp.appearance = prefersDark
-            ? NSAppearance(named: .darkAqua)
-            : NSAppearance(named: .aqua)
+        // Default follows the system appearance (NSApp.appearance = nil).
+        AppearancePreference.current.apply()
+    }
+
+    /// Dock icon click with no visible window → reopen the dashboard.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag, let appState = AppState.shared {
+            showDashboard(appState: appState)
+        }
+        return true
+    }
+
+    /// Keep running when the last window closes — TOM lives in the Dock and
+    /// menu bar and must survive the dashboard being closed (recordings and
+    /// the processing pipeline continue in the background). Without this,
+    /// the now-single-scene SwiftUI app terminates on window close.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
     }
 
     // MARK: - Notification Delegate
@@ -290,7 +287,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
         }
         appState.refreshWindows()
         let window = makeWindow(
-            title: "Choose What to Record",
+            title: String(localized: "Choose What to Record"),
             size: NSSize(width: 700, height: 500),
             view: WindowPickerView().environmentObject(appState)
         )
@@ -302,9 +299,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
     func showImportPicker(appState: AppState) {
         activateApp()
         let panel = NSOpenPanel()
-        panel.title = "Import Recordings"
-        panel.message = "Select one or more audio or video files. Each file is processed sequentially through transcription, summary, and embeddings — files beyond the first show a Queued badge in the meeting list."
-        panel.prompt = "Import"
+        panel.title = String(localized: "Import Recordings")
+        panel.message = String(localized: "Select one or more audio or video files. Each file is processed sequentially through transcription, summary, and embeddings — files beyond the first show a Queued badge in the meeting list.")
+        panel.prompt = String(localized: "Import")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = true
@@ -337,7 +334,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
             return
         }
         let window = makeWindow(
-            title: "Welcome to TOM",
+            title: String(localized: "Welcome to TOM"),
             size: NSSize(width: 500, height: 420),
             view: OnboardingView()
         )
@@ -371,116 +368,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
         window.delegate = self
         window.makeKeyAndOrderFront(nil)
         return window
-    }
-
-    func windowWillClose(_ notification: Notification) {
-        // Secondary window'lar (Settings/Picker/Onboarding/MeetingDetail) hâlâ AppDelegate'in
-        // NSWindowDelegate'i — bu yol ile tetiklenir. Window scene NSWindow'u için ayrı
-        // NotificationCenter observer (applicationDidFinishLaunching içinde) handleWindowClose'u çağırır.
-        handleWindowClose()
-    }
-
-    private func handleWindowClose() {
-        DispatchQueue.main.async {
-            // Window scene NSWindow'u title ile bulunur — dashboardWindow referansı kaldırıldı.
-            // String literal Task 1'deki Window scene title ile birebir aynı olmalı.
-            let dashboardIsVisible = NSApp.windows.first(where: {
-                $0.title == "TOM — Meeting Library" && $0.isVisible
-            }) != nil
-            let hasVisible = dashboardIsVisible
-                || self.meetingDetailWindow?.isVisible == true
-                || self.windowPickerWindow?.isVisible == true
-                || self.onboardingWindow?.isVisible == true   // YENİ: mevcut eksiklik kapatıldı (D-02 + Tuzak 4)
-            if !hasVisible {
-                NSApp.setActivationPolicy(.accessory)
-            }
-        }
-    }
-}
-
-// MARK: - Menu Bar Content
-
-private struct MenuBarContent: View {
-    @EnvironmentObject var appState: AppState
-    @EnvironmentObject var updater: UpdaterController
-    @Environment(\.openWindow) private var openWindow
-
-    var body: some View {
-        if appState.isRecording {
-            Text("Recording...")
-                .foregroundColor(.red)
-
-            if !appState.currentTranscript.isEmpty {
-                Text(String(appState.currentTranscript.suffix(80)))
-                    .font(.caption)
-                    .lineLimit(2)
-            }
-
-            Divider()
-
-            Button("Stop Recording") {
-                tomLog("User action: Stop Recording (menu bar)")
-                Task { @MainActor in
-                    appState.stopRecording()
-                }
-            }
-        } else {
-            if let reason = appState.recordingBlockedReason {
-                Text(reason)
-                    .font(.caption)
-            }
-
-            Button("Record a Window...") {
-                tomLog("User action: Record a Window… (menu bar)")
-                AppDelegate.shared?.showWindowPicker(appState: appState)
-            }
-            .disabled(!appState.canCreateMeetings)
-
-            Button("Record Voice Note") {
-                tomLog("User action: Record Voice Note (menu bar)")
-                Task { @MainActor in
-                    appState.startVoiceNote()
-                }
-            }
-            .disabled(!appState.canCreateMeetings)
-
-            Button("Upload Recording...") {
-                tomLog("User action: Upload Recording… (menu bar)")
-                AppDelegate.shared?.showImportPicker(appState: appState)
-            }
-            .disabled(!appState.canCreateMeetings)
-        }
-
-        Divider()
-
-        Button("Open Dashboard") {
-            tomLog("User action: Open Dashboard (menu bar)")
-            // LSUIElement uygulaması: openWindow'dan önce activation policy .regular olmalı,
-            // yoksa Window scene NSWindow key window olamaz (Tuzak 3).
-            // Sıralama önemli: setActivationPolicy → activate → openWindow.
-            NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
-            openWindow(id: "meeting-library")
-        }
-
-        Button("Settings") {
-            tomLog("User action: Open Settings (menu bar)")
-            AppDelegate.shared?.showSettings(appState: appState)
-        }
-
-        Button("Check for Updates…") {
-            tomLog("User action: Check for Updates… (menu bar)")
-            updater.checkForUpdates()
-        }
-            .disabled(!updater.canCheckForUpdates)
-
-        Divider()
-
-        Button("Quit") {
-            tomLog("User action: Quit (menu bar)")
-            NSApplication.shared.terminate(nil)
-        }
-        .keyboardShortcut("q")
     }
 
 }

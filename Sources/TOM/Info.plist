@@ -8,6 +8,16 @@
     <string>TOM</string>
     <key>CFBundleDisplayName</key>
     <string>TOM</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>de</string>
+        <string>es</string>
+        <string>fr</string>
+        <string>it</string>
+    </array>
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>CFBundleShortVersionString</key>
@@ -18,8 +28,6 @@
     <string>TOM</string>
     <key>CFBundleIconName</key>
     <string>AppIcon</string>
-    <key>LSUIElement</key>
-    <true/>
     <key>NSMicrophoneUsageDescription</key>
     <string>TOM needs microphone access to record meeting audio.</string>
     <key>NSScreenCaptureUsageDescription</key>

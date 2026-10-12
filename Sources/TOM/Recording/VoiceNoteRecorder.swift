@@ -14,6 +14,11 @@ final class VoiceNoteRecorder: @unchecked Sendable {
     private var file: AVAudioFile?
     private var outputURL: URL?
 
+    // Live transcription: installed by AppState before start; the tap feeds
+    // it 16 kHz mono samples in parallel with the WAV write.
+    var streamingSession: StreamingTranscriptionSession?
+    private var streamConverter: StreamingFormatConverter?
+
     /// Target output format: 16 kHz mono int16 PCM. Whisper-friendly.
     private let outputFormat: AVAudioFormat = {
         guard let fmt = AVAudioFormat(
@@ -75,8 +80,16 @@ final class VoiceNoteRecorder: @unchecked Sendable {
         self.outputURL = url
 
         let target = outputFormat
+        streamConverter = streamingSession != nil ? StreamingFormatConverter(from: inputFormat) : nil
         input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
-            self?.process(buffer: buffer, target: target)
+            guard let self else { return }
+            self.process(buffer: buffer, target: target)
+            if let session = self.streamingSession, let converter = self.streamConverter {
+                let samples = converter.convert(buffer)
+                if !samples.isEmpty {
+                    Task { await session.append(samples, source: "mic") }
+                }
+            }
         }
 
         do {
@@ -107,6 +120,8 @@ final class VoiceNoteRecorder: @unchecked Sendable {
         }
         engine = nil
         converter = nil
+        streamingSession = nil   // AppState keeps its own reference for finish()
+        streamConverter = nil
         let url = outputURL
         file = nil  // closes the AVAudioFile, flushing pending writes
         outputURL = nil

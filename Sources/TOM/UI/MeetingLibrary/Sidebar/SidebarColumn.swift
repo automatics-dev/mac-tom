@@ -46,7 +46,7 @@ struct SidebarColumn: View {
                 isSelected: appState.selectedGroupId == nil
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 6)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .stroke(Color.accent, lineWidth: isAllMeetingsDropTarget ? 2 : 0)
                     .padding(.horizontal, 8)
             )

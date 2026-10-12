@@ -21,7 +21,15 @@ struct SettingsView: View {
     @State private var openAIValidationError: String?
     @State private var anthropicValidationError: String?
     @AppStorage("tom.launchAtLogin") private var launchAtLogin = true
+    @State private var showMenuBarIcon = StatusItemController.isVisible
     @AppStorage("tom.notifyMeetingStart") private var notifyMeetingStart = true
+    /// Seeded from the RAM-aware default; the toggle then persists an
+    /// explicit choice via `LiveTranscription.set`.
+    @State private var liveTranscribe = LiveTranscription.isEnabled
+    /// Raw engine preference; `TranscriptionEngine.selected` applies the
+    /// model-readiness fallback at use time, the picker just stores intent.
+    @AppStorage(TranscriptionEngine.key) private var transcriptionEngineRaw = TranscriptionEngine.selected.rawValue
+    @AppStorage(WhisperRetranscription.key) private var retranscribeWithWhisper = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -54,12 +62,9 @@ struct SettingsView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
-                        selectedTab == tab
-                            ? Color.accent.opacity(0.15)
-                            : Color.clear
+                        Capsule().fill(selectedTab == tab ? Color.accent.opacity(0.16) : Color.clear)
                     )
                     .foregroundStyle(selectedTab == tab ? Color.accent : Color(nsColor: .secondaryLabelColor))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
             }
@@ -84,34 +89,53 @@ struct SettingsView: View {
     private var generalTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                settingsRow {
-                    Toggle("Launch at Login", isOn: $launchAtLogin)
-                        .onChange(of: launchAtLogin) { _, newValue in
-                            tomLog("User action: Launch at Login toggled \(newValue ? "ON" : "OFF")")
-                            do {
-                                if newValue {
-                                    try SMAppService.mainApp.register()
-                                } else {
-                                    try SMAppService.mainApp.unregister()
-                                }
-                            } catch {
-                                tomLog("Login item error: \(error)")
+                settingsToggleRow("Launch at Login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, newValue in
+                        tomLog("User action: Launch at Login toggled \(newValue ? "ON" : "OFF")")
+                        do {
+                            if newValue {
+                                try SMAppService.mainApp.register()
+                            } else {
+                                try SMAppService.mainApp.unregister()
                             }
+                        } catch {
+                            tomLog("Login item error: \(error)")
                         }
+                    }
+
+                Divider()
+
+                settingsToggleRow(
+                    "Show menu bar icon",
+                    description: "Quick access to recording from the menu bar. TOM always keeps its Dock icon.",
+                    isOn: $showMenuBarIcon
+                )
+                .onChange(of: showMenuBarIcon) { _, newValue in
+                    tomLog("User action: Show menu bar icon toggled \(newValue ? "ON" : "OFF")")
+                    StatusItemController.shared.setVisible(newValue)
                 }
 
                 Divider()
 
-                settingsRow {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Toggle("Notify when a meeting starts", isOn: $notifyMeetingStart)
-                            .onChange(of: notifyMeetingStart) { _, newValue in
-                                tomLog("User action: Notify when a meeting starts toggled \(newValue ? "ON" : "OFF")")
-                            }
-                        Text("Detects Zoom, Google Meet, Teams, Webex and Slack Huddle windows and offers to record with one click.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                settingsToggleRow(
+                    "Notify when a meeting starts",
+                    description: "Detects Zoom, Google Meet, Teams, Webex and Slack Huddle windows and offers to record with one click.",
+                    isOn: $notifyMeetingStart
+                )
+                .onChange(of: notifyMeetingStart) { _, newValue in
+                    tomLog("User action: Notify when a meeting starts toggled \(newValue ? "ON" : "OFF")")
+                }
+
+                Divider()
+
+                settingsToggleRow(
+                    "Transcribe live while recording",
+                    description: "Transcript streams in as you speak and is ready the moment the recording stops. Keeps the transcription model in memory during recording (~2 GB) — turn off on Macs with less than 16 GB if recordings stutter.",
+                    isOn: $liveTranscribe
+                )
+                .onChange(of: liveTranscribe) { _, newValue in
+                    tomLog("User action: Live transcription toggled \(newValue ? "ON" : "OFF")")
+                    LiveTranscription.set(newValue)
                 }
 
                 Divider()
@@ -163,29 +187,31 @@ struct SettingsView: View {
     // MARK: - Software Updates
 
     private var softwareUpdatesSection: some View {
-        settingsRow {
-            VStack(alignment: .leading, spacing: 8) {
-                Toggle("Automatically check for updates", isOn: $updater.automaticallyChecksForUpdates)
-                    .onChange(of: updater.automaticallyChecksForUpdates) { _, newValue in
-                        tomLog("User action: Automatically check for updates toggled \(newValue ? "ON" : "OFF")")
-                    }
-                Toggle("Automatically download updates", isOn: $updater.automaticallyDownloadsUpdates)
-                    .disabled(!updater.automaticallyChecksForUpdates)
-                    .onChange(of: updater.automaticallyDownloadsUpdates) { _, newValue in
-                        tomLog("User action: Automatically download updates toggled \(newValue ? "ON" : "OFF")")
-                    }
-                HStack(spacing: 10) {
-                    Button("Check Now") {
-                        tomLog("User action: Check Now for updates")
-                        updater.checkForUpdates()
-                    }
-                        .disabled(!updater.canCheckForUpdates)
-                    Spacer()
-                    Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+            settingsToggleRow("Automatically check for updates", isOn: $updater.automaticallyChecksForUpdates)
+                .onChange(of: updater.automaticallyChecksForUpdates) { _, newValue in
+                    tomLog("User action: Automatically check for updates toggled \(newValue ? "ON" : "OFF")")
                 }
+            settingsToggleRow("Automatically download updates", isOn: $updater.automaticallyDownloadsUpdates)
+                .disabled(!updater.automaticallyChecksForUpdates)
+                .opacity(updater.automaticallyChecksForUpdates ? 1 : 0.5)
+                .onChange(of: updater.automaticallyDownloadsUpdates) { _, newValue in
+                    tomLog("User action: Automatically download updates toggled \(newValue ? "ON" : "OFF")")
+                }
+            HStack(spacing: 10) {
+                Button("Check for Updates") {
+                    tomLog("User action: Check Now for updates")
+                    updater.checkForUpdates()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .disabled(!updater.canCheckForUpdates)
+                Spacer()
+                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?")")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+            .padding(.vertical, 10)
         }
     }
 
@@ -387,28 +413,82 @@ struct SettingsView: View {
     private var modelsIntroCopy: String {
         if cloudBrain.isActive {
             let provider = cloudBrain.backend == .openai ? "OpenAI" : "Anthropic"
-            return "Voice AI (Whisper transcription) and Search AI (semantic embeddings) always run on-device. Think AI is currently routed to \(provider) — summaries, action points, and Ask answers go through that provider's API. Local Qwen is optional in this mode."
+            return "Voice AI (on-device transcription) and Search AI (semantic embeddings) always run on-device. Think AI is currently routed to \(provider) — summaries, action points, and Ask answers go through that provider's API. Local Qwen is optional in this mode."
         }
-        return "All three models run locally on Apple Silicon — your meetings never leave your Mac. You can optionally route Think AI to OpenAI's or Anthropic's most capable model below."
+        return "All models run locally on Apple Silicon — your meetings never leave your Mac. You can optionally route Think AI to OpenAI's or Anthropic's most capable model below."
     }
 
-    /// Voice AI = Whisper. Always on-device; the user only ever sees a
-    /// Download / Re-download button + ready state. No backend choice here.
+    /// Voice AI = transcription. Two on-device engines: Parakeet (real-time,
+    /// 25 languages) and Whisper (accuracy pick). The picker chooses the
+    /// live/default engine; the toggle below re-runs Whisper over the full
+    /// recording after each meeting for archival quality.
     @ViewBuilder
     private var voiceAICard: some View {
-        modelCard(
-            info: ModelDownloadManager.transcriptionInfo,
-            status: downloads.transcriptionStatus,
-            isOptional: false,
-            download: {
-                tomLog("User action: Download Voice AI (Whisper)")
-                Task { await downloads.downloadTranscription() }
-            },
-            redownload: {
-                tomLog("User action: Re-download Voice AI (Whisper)")
-                Task { await downloads.wipeAndRedownloadTranscription() }
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Pick which model turns speech into text while you record. Parakeet transcribes in real time across 25 languages; Whisper is slower but the most accurate.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Picker("Engine", selection: Binding(
+                get: { TranscriptionEngine(rawValue: transcriptionEngineRaw) ?? .parakeet },
+                set: { engine in
+                    transcriptionEngineRaw = engine.rawValue
+                    tomLog("User action: transcription engine → \(engine.rawValue)")
+                }
+            )) {
+                Text("Parakeet").tag(TranscriptionEngine.parakeet)
+                Text("Whisper").tag(TranscriptionEngine.whisper)
             }
-        )
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            modelCard(
+                info: ModelDownloadManager.parakeetInfo,
+                status: downloads.parakeetStatus,
+                isOptional: false,
+                download: {
+                    tomLog("User action: Download Voice AI (Parakeet)")
+                    Task { await downloads.downloadParakeet() }
+                },
+                redownload: {
+                    tomLog("User action: Re-download Voice AI (Parakeet)")
+                    Task { await downloads.wipeAndRedownloadParakeet() }
+                }
+            )
+
+            modelCard(
+                info: ModelDownloadManager.transcriptionInfo,
+                status: downloads.transcriptionStatus,
+                isOptional: false,
+                download: {
+                    tomLog("User action: Download Voice AI (Whisper)")
+                    Task { await downloads.downloadTranscription() }
+                },
+                redownload: {
+                    tomLog("User action: Re-download Voice AI (Whisper)")
+                    Task { await downloads.wipeAndRedownloadTranscription() }
+                }
+            )
+
+            Toggle(isOn: Binding(
+                get: { retranscribeWithWhisper },
+                set: { on in
+                    retranscribeWithWhisper = on
+                    tomLog("User action: Whisper re-transcription → \(on ? "on" : "off")")
+                }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Refine with Whisper after each meeting")
+                        .font(.system(size: 13))
+                    Text("Runs a full Whisper pass once recording stops, replacing the live transcript with the most accurate version. Needs the Whisper model downloaded.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .disabled(!downloads.transcriptionStatus.isReady)
+        }
     }
 
     /// Think AI = summariser / RAG brain. Three backends — local Qwen, OpenAI,
@@ -869,6 +949,36 @@ struct SettingsView: View {
         content()
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Standard preference row: title (+ optional description) on the left,
+    /// a small switch on the right — the native macOS Settings pattern.
+    @ViewBuilder
+    private func settingsToggleRow(
+        _ title: String,
+        description: String? = nil,
+        isOn: Binding<Bool>
+    ) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 13))
+                if let description {
+                    Text(description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 16)
+            Toggle(title, isOn: isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .tint(.accent)
+        }
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Actions

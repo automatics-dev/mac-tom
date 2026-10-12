@@ -34,6 +34,127 @@ struct MeetingLibraryView: View {
     @AppStorage("tom.prefersDark") private var prefersDark: Bool = false
     @State private var showSearch = false
 
+    /// Toolbar layout matching the Pencil design 1:1: every custom control
+    /// draws its own single capsule (or bare glyph) directly on the toolbar.
+    /// On macOS 26 each ToolbarItem otherwise gets wrapped in its own Liquid
+    /// Glass capsule — a second ring around our chrome — so the shared
+    /// backing is hidden there.
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        if #available(macOS 26.0, *) {
+            ToolbarItem(placement: .navigation) { recordingControl }
+                .sharedBackgroundVisibility(.hidden)
+            ToolbarItem(placement: .principal) {
+                ToolbarRAGSearchField().environmentObject(appState)
+            }
+            .sharedBackgroundVisibility(.hidden)
+            ToolbarItem(placement: .primaryAction) { AppearanceToggleButton() }
+                .sharedBackgroundVisibility(.hidden)
+            ToolbarItem(placement: .primaryAction) { settingsGearButton }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .navigation) { recordingControl }
+            ToolbarItem(placement: .principal) {
+                ToolbarRAGSearchField().environmentObject(appState)
+            }
+            ToolbarItem(placement: .primaryAction) { AppearanceToggleButton() }
+            ToolbarItem(placement: .primaryAction) { settingsGearButton }
+        }
+    }
+
+    /// Record control: red capsule + blinking dot + elapsed while recording,
+    /// otherwise the orange New Recording menu capsule. Same geometry both
+    /// ways so the control doesn't jump when recording starts.
+    @ViewBuilder
+    private var recordingControl: some View {
+        if appState.isRecording {
+            Button {
+                tomLog("User action: Stop Recording (toolbar)")
+                appState.stopRecording()
+            } label: {
+                TimelineView(.periodic(from: .now, by: 0.8)) { context in
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 6, height: 6)
+                            .opacity(Int(context.date.timeIntervalSinceReferenceDate / 0.8) % 2 == 0 ? 1 : 0.35)
+                        Text("Recording")
+                            .font(.system(size: 12, weight: .semibold))
+                        if let started = appState.recordingStartTime {
+                            Text(formatDuration(max(0, context.date.timeIntervalSince(started))))
+                                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                .opacity(0.9)
+                        }
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Color.red.gradient))
+                }
+            }
+            .buttonStyle(.plain)
+            .help("Stop the current recording")
+        } else {
+            newRecordingMenu
+        }
+    }
+
+    private var settingsGearButton: some View {
+        Button {
+            tomLog("User action: Settings gear \(appState.showSettings ? "closed" : "opened") (toolbar)")
+            withAnimation(.spring(duration: 0.25)) {
+                appState.showSettings.toggle()
+            }
+        } label: {
+            Image(systemName: appState.showSettings ? "gearshape.fill" : "gearshape")
+                .font(.system(size: 13))
+        }
+        .buttonStyle(.plain)
+        .help(appState.showSettings ? "Close Settings" : "Settings")
+    }
+
+    /// Idle-state toolbar entry point: pops the three recording flows.
+    /// A Button + NSMenu rather than SwiftUI `Menu` — the macOS 26 toolbar
+    /// template-recolors Menu labels, which strips the capsule chrome.
+    private var newRecordingMenu: some View {
+        Button {
+            let menu = NSMenu()
+            menu.addItem(MeetingMenuItem("Record Screen or Window…", systemImage: "rectangle.inset.filled.badge.record") {
+                tomLog("User action: New Recording → Record Screen or Window… (toolbar)")
+                AppDelegate.shared?.showWindowPicker(appState: appState)
+            })
+            menu.addItem(MeetingMenuItem("Record Voice Note", systemImage: "mic") {
+                tomLog("User action: New Recording → Record Voice Note (toolbar)")
+                appState.startVoiceNote()
+            })
+            menu.addItem(MeetingMenuItem("Upload Recording…", systemImage: "square.and.arrow.down") {
+                tomLog("User action: New Recording → Upload Recording… (toolbar)")
+                AppDelegate.shared?.showImportPicker(appState: appState)
+            })
+            if let event = NSApp.currentEvent {
+                NSMenu.popUpContextMenu(menu, with: event, for: NSApp.keyWindow?.contentView ?? NSView())
+            }
+        } label: {
+            // Signature control: the one solid-color element in the toolbar.
+            // Single capsule layer — no tinted-box-inside-glass nesting.
+            HStack(spacing: 6) {
+                Image(systemName: "record.circle.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("New Recording")
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(Capsule().fill(Color.accent.gradient))
+        }
+        .buttonStyle(.plain)
+        .fixedSize()
+        .help(appState.recordingBlockedReason ?? "Record a meeting or voice note, or upload a file")
+        .disabled(!appState.canCreateMeetings)
+        .opacity(appState.canCreateMeetings ? 1 : 0.5)
+    }
+
     /// Türetilmiş Binding köprüsü — NavigationSplitView(columnVisibility:) bunu tüketir.
     private var columnVisibility: Binding<NavigationSplitViewVisibility> {
         Binding(
@@ -59,61 +180,16 @@ struct MeetingLibraryView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 900, minHeight: 600)
-        .toolbar {
-            // Center: RAG search field (sidebar search moved here)
-            ToolbarItem(placement: .principal) {
-                ToolbarRAGSearchField()
-                    .environmentObject(appState)
-            }
-
-            // Left: New Recording
-            ToolbarItem(placement: .navigation) {
-                Button {
-                    tomLog("User action: New Recording (toolbar)")
-                    AppDelegate.shared?.showWindowPicker(appState: appState)
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "record.circle.fill")
-                            .font(.system(size: 12))
-                        Text("New Recording")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .foregroundColor(.accent)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.accent.opacity(0.15))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                }
-                .buttonStyle(.plain)
-                .help(appState.recordingBlockedReason ?? "Record a new meeting")
-                .disabled(appState.isRecording || !appState.canCreateMeetings)
-            }
-
-            // Right: Appearance toggle
-            ToolbarItem(placement: .primaryAction) {
-                AppearanceToggleButton()
-            }
-
-            // Right: Settings gear (far right)
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    tomLog("User action: Settings gear \(appState.showSettings ? "closed" : "opened") (toolbar)")
-                    withAnimation(.spring(duration: 0.25)) {
-                        appState.showSettings.toggle()
-                    }
-                } label: {
-                    Image(systemName: appState.showSettings ? "gearshape.fill" : "gearshape")
-                        .font(.system(size: 13))
-                }
-                .help(appState.showSettings ? "Close Settings" : "Settings")
-            }
-        }
-        .toolbarBackground(.visible, for: .windowToolbar)
+        .toolbar { toolbarContent }
+        // No forced toolbar background: on macOS 26 the toolbar renders as
+        // glass sections, and forcing `.visible` painted only the content
+        // sections — the sidebar section stayed glass, producing a hard seam
+        // and a "floating" New Recording pill in light mode.
         .removeSidebarToggleOnMacOS14()
         .blur(radius: appState.showSettings ? 5 : 0)
         .overlay {
             if appState.showSettings {
-                Color.black.opacity(0.35)
+                Color.black.opacity(0.25)
                     .onTapGesture {
                         withAnimation(.spring(duration: 0.25)) {
                             appState.showSettings = false
@@ -153,7 +229,7 @@ private struct SettingsModalPanel: View {
         VStack(spacing: 0) {
             HStack {
                 Text("Settings")
-                    .font(.headline)
+                    .font(.system(size: 15, weight: .semibold))
                 Spacer()
                 Button {
                     withAnimation(.spring(duration: 0.25)) {
@@ -161,17 +237,17 @@ private struct SettingsModalPanel: View {
                     }
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.secondary)
-                        .padding(5)
-                        .background(Color(nsColor: .quaternaryLabelColor))
+                        .frame(width: 22, height: 22)
+                        .background(Color.primary.opacity(0.06))
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .help("Close Settings")
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 14)
 
             Divider()
 
@@ -180,9 +256,12 @@ private struct SettingsModalPanel: View {
                 .frame(height: 500)
         }
         .frame(width: 520)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.35), radius: 40, x: 0, y: 16)
     }
 }
 
@@ -237,38 +316,30 @@ private struct ToolbarRAGSearchField: View {
             .buttonStyle(.plain)
             .disabled(appState.ragQuery.isEmpty)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 14)
         .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.quaternary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1)
-                )
-        )
+        // Single capsule as in the Pencil design — the toolbar's own glass
+        // backing is hidden for this item (sharedBackgroundVisibility), so
+        // this is the only chrome around the field.
+        .background(Capsule().fill(Color.cardBg))
+        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 1))
     }
 }
 
 /// Toolbar görünüm geçiş butonu.
 /// NSApp.appearance üzerinden tüm uygulama görünümünü değiştirir.
-/// Tercih @AppStorage("tom.prefersDark") ile kalıcıdır.
+/// Cycles System → Light → Dark; tercih "tom.appearance" ile kalıcıdır.
 private struct AppearanceToggleButton: View {
-    @AppStorage("tom.prefersDark") private var prefersDark: Bool = false
+    @State private var preference: AppearancePreference = .current
 
     var body: some View {
         Button {
-            prefersDark.toggle()
-            tomLog("User action: appearance → \(prefersDark ? "Dark Mode" : "Light Mode")")
-            NSApp.appearance = prefersDark
-                ? NSAppearance(named: .darkAqua)
-                : NSAppearance(named: .aqua)
+            preference = preference.next
+            tomLog("User action: appearance → \(preference.rawValue)")
+            AppearancePreference.set(preference)
         } label: {
-            Label(
-                prefersDark ? "Switch to Light Mode" : "Switch to Dark Mode",
-                systemImage: prefersDark ? "sun.max" : "moon"
-            )
+            Label(preference.label, systemImage: preference.icon)
         }
-        .help(prefersDark ? "Switch to Light Mode" : "Switch to Dark Mode")
+        .help("\(preference.label) — click to switch")
     }
 }

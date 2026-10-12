@@ -105,12 +105,17 @@ struct DetailPlayerBar: View {
                             .tint(.accent)
                     }
 
-                    Button { playerManager.toggleVideoMode() } label: {
-                        Image(systemName: playerManager.showVideo ? "video.fill" : "waveform")
-                            .font(.system(size: 11))
-                            .foregroundColor(.subtleText)
+                    // Video/waveform switch only makes sense when the file
+                    // actually has a video track — audio-only recordings
+                    // (voice notes, audio imports) hide it.
+                    if meeting.hasVideo {
+                        Button { playerManager.toggleVideoMode() } label: {
+                            Image(systemName: playerManager.showVideo ? "video.fill" : "waveform")
+                                .font(.system(size: 11))
+                                .foregroundColor(.subtleText)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 20)

@@ -7,10 +7,10 @@ struct SidebarMeetingRow: View {
     let isSelected: Bool
 
     var body: some View {
-        HStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 6)
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .fill(Color.accent.opacity(0.15))
-                .frame(width: 26, height: 26)
+                .frame(width: 24, height: 24)
                 .overlay(
                     Image(systemName: meeting.kind.icon)
                         .font(.system(size: 11))
@@ -19,22 +19,22 @@ struct SidebarMeetingRow: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(meeting.title)
-                    .font(.system(size: 12))
+                    .font(.system(size: 12.5))
                     .foregroundColor(isSelected ? .accent : .primary)
                     .lineLimit(1)
 
                 Text("Default")
-                    .font(.system(size: 10))
+                    .font(.system(size: 10.5))
                     .foregroundColor(.subtleText)
             }
 
             Spacer()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 5)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 7)
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isSelected ? Color.cardSelected : Color.clear)
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(isSelected ? Color.accent.opacity(0.12) : Color.clear)
                 .padding(.horizontal, 8)
         )
     }

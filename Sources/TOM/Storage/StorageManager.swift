@@ -112,6 +112,19 @@ final class StorageManager: @unchecked Sendable {
                 ("kind",            "ALTER TABLE meetings ADD COLUMN kind TEXT NOT NULL DEFAULT 'meeting';"),
                 ("speaker_aliases", "ALTER TABLE meetings ADD COLUMN speaker_aliases TEXT;"),
             ]
+            // transcript_segments: word-level timings as JSON (karaoke sync).
+            let segmentColumns = columnNames(table: "transcript_segments")
+            let segmentMigrations: [(column: String, sql: String)] = [
+                ("words", "ALTER TABLE transcript_segments ADD COLUMN words TEXT;"),
+            ]
+            for (column, sql) in segmentMigrations where !segmentColumns.contains(column) {
+                var errMsg: UnsafeMutablePointer<CChar>?
+                if sqlite3_exec(db, sql, nil, nil, &errMsg) != SQLITE_OK {
+                    let msg = errMsg.map { String(cString: $0) } ?? "unknown"
+                    sqlite3_free(errMsg)
+                    print("StorageManager: segment migration error — \(msg)")
+                }
+            }
             for (column, sql) in migrations where !existing.contains(column) {
                 var errMsg: UnsafeMutablePointer<CChar>?
                 if sqlite3_exec(db, sql, nil, nil, &errMsg) != SQLITE_OK {
@@ -377,10 +390,13 @@ final class StorageManager: @unchecked Sendable {
                 sqlite3_bind_text(stmt, 1, meetingId.uuidString, -1, TRANSIENT)
             }
             let sql = """
-                INSERT INTO transcript_segments (id, meeting_id, start_time, end_time, speaker, text)
-                VALUES (?, ?, ?, ?, ?, ?);
+                INSERT INTO transcript_segments (id, meeting_id, start_time, end_time, speaker, text, words)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
             """
             for segment in segments {
+                let wordsJSON: String? = segment.words.flatMap { words in
+                    (try? JSONEncoder().encode(words)).flatMap { String(data: $0, encoding: .utf8) }
+                }
                 try exec(sql) { stmt in
                     sqlite3_bind_text(stmt, 1, segment.id.uuidString, -1, TRANSIENT)
                     sqlite3_bind_text(stmt, 2, meetingId.uuidString, -1, TRANSIENT)
@@ -388,6 +404,11 @@ final class StorageManager: @unchecked Sendable {
                     sqlite3_bind_double(stmt, 4, segment.endTime)
                     sqlite3_bind_text(stmt, 5, segment.speaker, -1, TRANSIENT)
                     sqlite3_bind_text(stmt, 6, segment.text, -1, TRANSIENT)
+                    if let wordsJSON {
+                        sqlite3_bind_text(stmt, 7, wordsJSON, -1, TRANSIENT)
+                    } else {
+                        sqlite3_bind_null(stmt, 7)
+                    }
                 }
             }
         }
@@ -395,7 +416,7 @@ final class StorageManager: @unchecked Sendable {
 
     func fetchTranscriptSegments(meetingId: UUID) throws -> [TranscriptSegment] {
         try queue.sync {
-            let sql = "SELECT id, start_time, end_time, speaker, text FROM transcript_segments WHERE meeting_id = ? ORDER BY start_time;"
+            let sql = "SELECT id, start_time, end_time, speaker, text, words FROM transcript_segments WHERE meeting_id = ? ORDER BY start_time;"
             var stmt: OpaquePointer?
             guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
                 throw StorageError.prepareFailed(String(cString: sqlite3_errmsg(db)))
@@ -412,7 +433,10 @@ final class StorageManager: @unchecked Sendable {
                 let endTime = sqlite3_column_double(stmt, 2)
                 let speaker = columnText(stmt!, 3) ?? ""
                 let text = strippingWhisperTokens(columnText(stmt!, 4) ?? "")
-                segments.append(TranscriptSegment(id: id, startTime: startTime, endTime: endTime, speaker: speaker, text: text))
+                let words: [WordStamp]? = columnText(stmt!, 5)
+                    .flatMap { $0.data(using: .utf8) }
+                    .flatMap { try? JSONDecoder().decode([WordStamp].self, from: $0) }
+                segments.append(TranscriptSegment(id: id, startTime: startTime, endTime: endTime, speaker: speaker, text: text, words: words))
             }
             return segments
         }

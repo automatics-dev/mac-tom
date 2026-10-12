@@ -101,6 +101,13 @@ struct MeetingListColumn: View {
                         if hoveredMeetingID == meeting.id {
                             Button {
                                 let menu = NSMenu()
+                                if meeting.state == .recording, appState.isRecording {
+                                    menu.addItem(MeetingMenuItem("Stop Recording", systemImage: "stop.circle") {
+                                        tomLog("User action: Stop Recording (meeting card menu)")
+                                        appState.stopRecording()
+                                    })
+                                    menu.addItem(.separator())
+                                }
                                 menu.addItem(MeetingMenuItem("New Window", systemImage: "macwindow.badge.plus") {
                                     appState.selectedMeeting = meeting
                                     AppDelegate.shared?.showMeetingDetail(meeting: meeting, appState: appState)
@@ -138,6 +145,15 @@ struct MeetingListColumn: View {
                         hoveredMeetingID = hovering ? meeting.id : nil
                     }
                     .contextMenu {
+                        if meeting.state == .recording, appState.isRecording {
+                            Button {
+                                tomLog("User action: Stop Recording (meeting card context menu)")
+                                appState.stopRecording()
+                            } label: {
+                                Label("Stop Recording", systemImage: "stop.circle")
+                            }
+                            Divider()
+                        }
                         Button {
                             appState.selectedMeeting = meeting
                             AppDelegate.shared?.showMeetingDetail(meeting: meeting, appState: appState)
@@ -179,7 +195,11 @@ private struct MeetingMenuIcon: View {
     }
 }
 
-private final class MeetingMenuItem: NSMenuItem {
+/// NSMenuItem with a closure action + SF Symbol image. Shared by the meeting
+/// card menus and the toolbar's New Recording popup — SwiftUI `Menu` labels
+/// get template-recolored by the macOS 26 toolbar, so custom-chrome buttons
+/// pop NSMenus instead.
+final class MeetingMenuItem: NSMenuItem {
     private let closure: () -> Void
     init(_ title: String, systemImage: String, action: @escaping () -> Void) {
         self.closure = action

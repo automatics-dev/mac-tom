@@ -20,20 +20,16 @@ struct EditableSidebarGroupRow: View {
         Group {
             if isEditing {
                 HStack(spacing: 8) {
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(Color.accent.opacity(0.15))
-                        .frame(width: 22, height: 22)
-                        .overlay(
-                            Group {
-                                if group.icon.unicodeScalars.allSatisfy({ $0.isASCII }) {
-                                    Image(systemName: group.icon)
-                                        .font(.system(size: 11))
-                                        .foregroundColor(.accent)
-                                } else {
-                                    Text(group.icon).font(.system(size: 11))
-                                }
-                            }
-                        )
+                    Group {
+                        if group.icon.unicodeScalars.allSatisfy({ $0.isASCII }) {
+                            Image(systemName: group.icon)
+                                .font(.system(size: 12))
+                                .foregroundColor(.accent)
+                        } else {
+                            Text(group.icon).font(.system(size: 12))
+                        }
+                    }
+                    .frame(width: 18)
 
                     TextField("Group name", text: $editName, onCommit: {
                         let trimmed = editName.trimmingCharacters(in: .whitespaces)
@@ -41,13 +37,13 @@ struct EditableSidebarGroupRow: View {
                         isEditing = false
                     })
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .font(.system(size: 12.5))
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.cardSelected)
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.accent.opacity(0.12))
                         .padding(.horizontal, 8)
                 )
             } else {
@@ -59,7 +55,7 @@ struct EditableSidebarGroupRow: View {
                     isSelected: isSelected
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .stroke(Color.accent, lineWidth: isDropTarget ? 2 : 0)
                         .padding(.horizontal, 8)
                 )

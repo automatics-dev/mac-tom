@@ -13,18 +13,22 @@ final class PlayerManager: ObservableObject {
     @Published var currentSegmentIndex: Int = -1
     @Published var showVideo = true  // toggle between video+transcript vs audio-only+transcript
 
-    var segments: [TranscriptSegment] = []  // loaded from DB
+    /// Published so transcript views re-render the moment the pipeline
+    /// finishes and AppState pushes fresh segments — without it the user had
+    /// to reselect the meeting (or ⌘R) to see the transcript appear.
+    @Published var segments: [TranscriptSegment] = []  // loaded from DB
 
     private var timeObserver: Any?
     private var durationTask: Task<Void, Never>?
     private var isSeeking = false
 
-    func load(url: URL, segments: [TranscriptSegment]) {
+    func load(url: URL, segments: [TranscriptSegment], hasVideo: Bool = true) {
         stop()
         let p = AVPlayer(url: url)
         p.volume = Float(volume)
         self.player = p
         self.segments = segments
+        self.showVideo = hasVideo
 
         // Get duration — task is cancelled in stop() if user switches meeting before it finishes
         durationTask = Task {
@@ -93,6 +97,9 @@ final class PlayerManager: ObservableObject {
         currentTime = 0
         duration = 0
         currentSegmentIndex = -1
+        // Clear segments so selecting a meeting that has no recording (or is
+        // still transcribing) never shows the previous meeting's transcript.
+        segments = []
     }
 
     func toggleVideoMode() {
@@ -101,11 +108,15 @@ final class PlayerManager: ObservableObject {
 
     private func updateCurrentSegment() {
         let t = currentTime
-        // Find the segment that contains the current time
-        if let idx = segments.lastIndex(where: { $0.startTime <= t }) {
-            if currentSegmentIndex != idx {
-                currentSegmentIndex = idx
-            }
+        // Prefer a segment whose range actually contains `t` — with two
+        // interleaved streams (mic "Me" + system "Speaker") the timeline has
+        // overlapping segments, and the old "last started before t" rule
+        // could park the highlight on a segment that ended long ago. Fall
+        // back to the last-started segment during inter-segment silence.
+        let idx = segments.lastIndex(where: { $0.startTime <= t && t <= $0.endTime })
+            ?? segments.lastIndex(where: { $0.startTime <= t })
+        if let idx, currentSegmentIndex != idx {
+            currentSegmentIndex = idx
         }
     }
 

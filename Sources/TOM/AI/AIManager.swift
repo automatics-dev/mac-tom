@@ -1,4 +1,5 @@
 import Combine
+import FluidAudio
 import Foundation
 import MLXLLM
 import MLXLMCommon
@@ -11,6 +12,16 @@ import Security
 protocol SummarizingService: Sendable {
     func chat(system: String, user: String) async throws -> String
 
+    /// Streaming variant of `chat`: `onDelta` receives each new fragment of
+    /// the reply as it is generated, and the full reply is still returned at
+    /// the end. Default falls back to `chat` and emits the whole reply as a
+    /// single delta, so non-streaming backends need no changes.
+    func chatStream(
+        system: String,
+        user: String,
+        onDelta: @Sendable @escaping (String) -> Void
+    ) async throws -> String
+
     /// Free any in-memory model state. Default no-op; backends that hold
     /// large weights override this so the pipeline can drop them between
     /// stages (and the idle-timeout coordinator can drop them between
@@ -20,6 +31,16 @@ protocol SummarizingService: Sendable {
 
 extension SummarizingService {
     func unload() async {}
+
+    func chatStream(
+        system: String,
+        user: String,
+        onDelta: @Sendable @escaping (String) -> Void
+    ) async throws -> String {
+        let reply = try await chat(system: system, user: user)
+        onDelta(reply)
+        return reply
+    }
 }
 
 // MARK: - AIManager
@@ -67,7 +88,13 @@ final class AIManager: Sendable {
     }
 
     /// RAG: answer a question using retrieved context chunks from meetings.
-    func ragAnswer(question: String, contextChunks: [(text: String, meetingTitle: String, meetingDate: String)]) async throws -> String {
+    /// Pass `onDelta` to receive the reply incrementally as it is generated
+    /// (token-streamed on the local backend, single delta on cloud backends).
+    func ragAnswer(
+        question: String,
+        contextChunks: [(text: String, meetingTitle: String, meetingDate: String)],
+        onDelta: (@Sendable (String) -> Void)? = nil
+    ) async throws -> String {
         let context = contextChunks.enumerated().map { idx, chunk in
             "[\(idx + 1)] From \"\(chunk.meetingTitle)\" (\(chunk.meetingDate)):\n\(chunk.text)"
         }.joined(separator: "\n\n")
@@ -78,6 +105,9 @@ final class AIManager: Sendable {
             "context": context,
         ])
 
+        if let onDelta {
+            return try await service.chatStream(system: system, user: user, onDelta: onDelta)
+        }
         return try await service.chat(system: system, user: user)
     }
 
@@ -349,7 +379,19 @@ actor MLXSummarizer: SummarizingService {
         try await runChat(system: system, user: user)
     }
 
-    private func runChat(system: String, user: String) async throws -> String {
+    nonisolated func chatStream(
+        system: String,
+        user: String,
+        onDelta: @Sendable @escaping (String) -> Void
+    ) async throws -> String {
+        try await runChat(system: system, user: user, onDelta: onDelta)
+    }
+
+    private func runChat(
+        system: String,
+        user: String,
+        onDelta: (@Sendable (String) -> Void)? = nil
+    ) async throws -> String {
         // Refuse to run inference until Qwen has been explicitly downloaded
         // via Settings/Onboarding. Without this guard, a fresh install
         // silently triggers a ~9 GB HF fetch from the inference path —
@@ -386,6 +428,7 @@ actor MLXSummarizer: SummarizingService {
             for await event in stream {
                 if case .chunk(let text) = event {
                     output += text
+                    onDelta?(text)
                 }
             }
             return output
@@ -488,6 +531,11 @@ final class ModelDownloadManager: ObservableObject {
         subtitle: "Speech → text · ~1.5 GB",
         icon: "waveform"
     )
+    static let parakeetInfo = ModelInfo(
+        title: "Parakeet TDT v3",
+        subtitle: "Real-time speech → text · ~500 MB · 25 languages",
+        icon: "bolt.badge.waveform"
+    )
     static let summaryInfo = ModelInfo(
         title: "Qwen 3 4B Instruct 2507 (4-bit)",
         subtitle: "Summaries & titles · ~2.4 GB",
@@ -510,6 +558,7 @@ final class ModelDownloadManager: ObservableObject {
     static let bytesTotal: Int64 = bytesTranscription + bytesSummary + bytesEmbedding
 
     @Published private(set) var transcriptionStatus: Status = .unknown
+    @Published private(set) var parakeetStatus: Status = .unknown
     @Published private(set) var summaryStatus: Status = .unknown
     @Published private(set) var embeddingStatus: Status = .unknown
 
@@ -624,6 +673,11 @@ final class ModelDownloadManager: ObservableObject {
             onDisk: MLXEmbedder.isModelOnDisk,
             currentStatus: embeddingStatus
         )
+        parakeetStatus = Self.resolveStatus(
+            flagKey: ParakeetTranscriber.readyKey,
+            onDisk: ParakeetTranscriber.isModelOnDisk,
+            currentStatus: parakeetStatus
+        )
     }
 
     private static func resolveStatus(
@@ -640,9 +694,20 @@ final class ModelDownloadManager: ObservableObject {
         case (true, true):
             return .ready
         case (true, false):
-            // Flag set but files gone → self-heal and force re-download.
-            UserDefaults.standard.set(false, forKey: flagKey)
-            return .notDownloaded
+            // Flag set but files not visible. Two very different causes:
+            // the cache was actually deleted (→ self-heal, force re-download)
+            // or the process simply can't read the storage location right now
+            // (TCC denial on ~/Documents — e.g. a differently-signed build,
+            // or the user revoked Files & Folders access). Wiping the flag in
+            // the second case bricks recording with no explanation AND
+            // persists the damage for correctly-permissioned launches, so
+            // only self-heal when the storage root is demonstrably readable.
+            if modelStorageReadable {
+                UserDefaults.standard.set(false, forKey: flagKey)
+                return .notDownloaded
+            }
+            tomLog("Model check: storage not readable (permissions?) — keeping '\(flagKey)' ready flag")
+            return .ready
         case (false, true):
             // Files exist but flag never set (e.g. earlier crash mid-write
             // of the flag). Trust the disk and adopt the model.
@@ -651,6 +716,16 @@ final class ModelDownloadManager: ObservableObject {
         case (false, false):
             return .notDownloaded
         }
+    }
+
+    /// True when the model cache roots can actually be enumerated. A TCC
+    /// denial on ~/Documents makes every model look "gone" while the files
+    /// are perfectly intact — this probe distinguishes unreadable from
+    /// deleted. ~/Documents always exists, so a failed listing means
+    /// denied access, not absence.
+    private static var modelStorageReadable: Bool {
+        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return (try? FileManager.default.contentsOfDirectory(atPath: documents.path)) != nil
     }
 
     /// Triggers downloads for any model not already marked ready. The three
@@ -669,6 +744,26 @@ final class ModelDownloadManager: ObservableObject {
                 group.addTask { await self.downloadEmbedding() }
             }
         }
+    }
+
+    /// Parakeet is an optional engine — not part of `downloadAll` /
+    /// `allReady` (those gate onboarding on the required trio). Downloaded
+    /// on demand from the Settings row or the engine picker.
+    func downloadParakeet() async {
+        guard !parakeetStatus.isDownloading else { return }
+        markDownloadStartIfNeeded()
+        parakeetStatus = .downloading(0)
+        do {
+            try await ParakeetTranscriber.shared.download { [weak self] fraction in
+                Task { @MainActor [weak self] in
+                    self?.parakeetStatus = .downloading(fraction)
+                }
+            }
+            parakeetStatus = .ready
+        } catch {
+            parakeetStatus = .failed(error.localizedDescription)
+        }
+        clearDownloadStartIfIdle()
     }
 
     func downloadTranscription() async {
@@ -756,6 +851,17 @@ final class ModelDownloadManager: ObservableObject {
     func wipeAndRedownloadTranscription() async {
         wipeTranscriptionOnDisk()
         await downloadTranscription()
+    }
+
+    /// Wipe + redownload the Parakeet models. FluidAudio owns the cache
+    /// layout, so wiping is just deleting its model directory; `download`
+    /// (force-less) then re-fetches the missing files.
+    func wipeAndRedownloadParakeet() async {
+        await ParakeetTranscriber.shared.unload()
+        try? FileManager.default.removeItem(at: AsrModels.defaultCacheDirectory(for: .v3))
+        UserDefaults.standard.set(false, forKey: ParakeetTranscriber.readyKey)
+        parakeetStatus = .notDownloaded
+        await downloadParakeet()
     }
 
     /// Wipe + redownload just the local LLM (Qwen). Used by the per-model
@@ -1378,6 +1484,26 @@ final class RoutingSummarizer: SummarizingService {
         }
     }
 
+    /// Must forward explicitly — the protocol's default `chatStream` would
+    /// call `self.chat` and lose the local backend's token streaming.
+    func chatStream(
+        system: String,
+        user: String,
+        onDelta: @Sendable @escaping (String) -> Void
+    ) async throws -> String {
+        switch CloudBrainPreferences.activeBackendSnapshot() {
+        case .openai:
+            tomLog("Routing: CLOUD (OpenAI \(OpenAISummarizer.model))")
+            return try await openai.chatStream(system: system, user: user, onDelta: onDelta)
+        case .anthropic:
+            tomLog("Routing: CLOUD (Anthropic \(AnthropicSummarizer.model))")
+            return try await anthropic.chatStream(system: system, user: user, onDelta: onDelta)
+        case .local:
+            tomLog("Routing: LOCAL (Qwen 3 4B)")
+            return try await local.chatStream(system: system, user: user, onDelta: onDelta)
+        }
+    }
+
     func unload() async {
         // Local owns the heavy weights; cloud backends are no-ops.
         // Forwarding all three means callers don't need to know which
@@ -1401,20 +1527,20 @@ enum AIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .modelNotLoaded:
-            return "Qwen 3 4B isn't downloaded yet. Open Settings → AI Models and finish the model download first."
+            return String(localized: "Qwen 3 4B isn't downloaded yet. Open Settings → AI Models and finish the model download first.")
         case let .generationFailed(reason):
-            return "AI generation failed: \(reason)"
+            return String(localized: "AI generation failed: \(reason)")
         case let .cloudKeyMissing(provider):
-            return "Cloud brain is set to \(provider) but no \(provider) API key is in Keychain. Open Settings → AI Models to add one, or switch to the local model."
+            return String(localized: "Cloud brain is set to \(provider) but no \(provider) API key is in Keychain. Open Settings → AI Models to add one, or switch to the local model.")
         case let .cloudKeyInvalid(provider, detail):
             if let detail, !detail.isEmpty {
-                return "\(provider) rejected this API key: \(detail). Check the key is still active in your account dashboard."
+                return String(localized: "\(provider) rejected this API key: \(detail). Check the key is still active in your account dashboard.")
             }
-            return "\(provider) rejected this API key. Check it's still active in your account dashboard."
+            return String(localized: "\(provider) rejected this API key. Check it's still active in your account dashboard.")
         case let .cloudNetworkError(provider, message):
-            return "Could not reach \(provider) to verify the key: \(message). Check your connection and try again."
+            return String(localized: "Could not reach \(provider) to verify the key: \(message). Check your connection and try again.")
         case let .cloudHTTPError(provider, code, message):
-            return "\(provider) returned \(code): \(message)"
+            return String(localized: "\(provider) returned \(code): \(message)")
         }
     }
 }

@@ -40,7 +40,13 @@ struct TranscriptionOutcome: Sendable {
 /// Service that turns audio into time-stamped transcript segments + the
 /// detected source language.
 protocol TranscribingService: Sendable {
-    func transcribe(fileURL: URL) async throws -> TranscriptionOutcome
+    /// `onSegmentDiscovered` fires with each cleaned utterance as the decoder
+    /// discovers it, so the UI can stream a live transcript while the file is
+    /// still being processed. Pass nil when live output isn't needed.
+    func transcribe(
+        fileURL: URL,
+        onSegmentDiscovered: (@Sendable (String) -> Void)?
+    ) async throws -> TranscriptionOutcome
 
     /// Free any in-memory model state held by this service. Default
     /// implementation is a no-op; backends that hold large CoreML / MLX
@@ -53,6 +59,10 @@ protocol TranscribingService: Sendable {
 
 extension TranscribingService {
     func unload() async {}
+
+    func transcribe(fileURL: URL) async throws -> TranscriptionOutcome {
+        try await transcribe(fileURL: fileURL, onSegmentDiscovered: nil)
+    }
 }
 
 // MARK: - TranscriptionManager
@@ -61,16 +71,27 @@ extension TranscribingService {
 /// API (`transcribeFullRecording` / `transcribeDiarized`) so AppState doesn't
 /// have to change; both methods route to the same local backend now that
 /// diarization is removed.
+///
+/// Without an explicit service override, every call resolves the engine the
+/// user selected in Settings (Parakeet or Whisper) at call time. The Whisper
+/// re-transcription pass constructs its own manager pinned to Whisper.
 final class TranscriptionManager: @unchecked Sendable {
 
-    private let service: TranscribingService
+    private let serviceOverride: TranscribingService?
 
-    init(service: TranscribingService = WhisperKitTranscriber.shared) {
-        self.service = service
+    init(service: TranscribingService? = nil) {
+        self.serviceOverride = service
     }
 
-    func transcribeFullRecording(fileURL: URL) async throws -> TranscriptionOutcome {
-        try await service.transcribe(fileURL: fileURL)
+    private var service: TranscribingService {
+        serviceOverride ?? TranscriptionEngine.selected.service
+    }
+
+    func transcribeFullRecording(
+        fileURL: URL,
+        onSegmentDiscovered: (@Sendable (String) -> Void)? = nil
+    ) async throws -> TranscriptionOutcome {
+        try await service.transcribe(fileURL: fileURL, onSegmentDiscovered: onSegmentDiscovered)
     }
 
     /// Retained for source compatibility with AppState. Local backend has no
@@ -85,9 +106,15 @@ final class TranscriptionManager: @unchecked Sendable {
     /// (Qwen summarisation) has room to allocate its KV cache for long
     /// transcripts. The next transcription call re-loads the model (~30 s
     /// cold start), which is acceptable because `ProcessingQueue` runs
-    /// jobs serially.
+    /// jobs serially. Without an override, both engines are dropped —
+    /// whichever happens to be resident is the one worth evicting.
     func unload() async {
-        await service.unload()
+        if let serviceOverride {
+            await serviceOverride.unload()
+        } else {
+            await ParakeetTranscriber.shared.unload()
+            await WhisperKitTranscriber.shared.unload()
+        }
     }
 }
 
@@ -114,11 +141,6 @@ actor WhisperKitTranscriber: TranscribingService {
     /// automatically by WhisperKit's resolver.
     private let modelName = "large-v3-v20240930_turbo"
 
-    /// Silence gap (seconds) above which two consecutive word-segments are
-    /// treated as separate utterances. 1.5s catches natural speech turns
-    /// without splitting mid-sentence pauses.
-    private let utteranceGapSeconds: TimeInterval = 1.5
-
     /// `nonisolated(unsafe)` because `WhisperKit` is a non-Sendable upstream
     /// class. Only actor-isolated methods (`ensurePipe`, `loadAndTranscribe`,
     /// `download`) read or mutate this property, so the actor's serial
@@ -138,6 +160,46 @@ actor WhisperKitTranscriber: TranscribingService {
     /// downloaded once, then the cache directory was deleted) doesn't
     /// mislead the UI into showing Ready when inference would silently
     /// trigger a multi-GB re-download.
+    /// Shared decode configuration for both the file and streaming paths.
+    ///
+    /// Why hallucinations ("Thank you. Thank you. …") happen at all: Whisper
+    /// is trained on YouTube-heavy data, and when a window contains no real
+    /// speech (muted mic, silent stretch) the decoder free-runs and emits the
+    /// most probable *closing phrases* from its training set. The fix is
+    /// structural — detect non-speech, don't decode it:
+    ///
+    /// - `noSpeechThreshold: 0.6` — Whisper's own no-speech classifier
+    ///   (OpenAI reference default). Windows the model itself scores as
+    ///   silence are suppressed instead of decoded.
+    /// - `compressionRatioThreshold: 2.0` — tightened from WhisperKit's 2.4:
+    ///   highly repetitive output (the signature of a hallucination loop)
+    ///   triggers an in-decoder retry at higher temperature.
+    ///
+    /// The streaming path adds an energy gate before decoding (see
+    /// `StreamingTranscriptionSession`) so fully silent chunks never reach
+    /// the model at all.
+    /// `wordTimestamps` runs Whisper's alignment head so each segment carries
+    /// real per-word times — the karaoke overlay follows actual speech
+    /// instead of linearly interpolating across the utterance.
+    static let decodingOptions = DecodingOptions(
+        wordTimestamps: true,
+        compressionRatioThreshold: 2.0,
+        noSpeechThreshold: 0.6
+    )
+
+    /// Maps WhisperKit word timings into TOM's storage type, dropping
+    /// empty/whitespace-only entries. Returns nil when the decoder produced
+    /// no word data (unsupported language, timestamps disabled).
+    nonisolated static func wordStamps(from seg: TranscriptionSegment) -> [WordStamp]? {
+        guard let words = seg.words, !words.isEmpty else { return nil }
+        let stamps = words.compactMap { w -> WordStamp? in
+            let text = w.word.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { return nil }
+            return WordStamp(text: text, start: TimeInterval(w.start), end: TimeInterval(w.end))
+        }
+        return stamps.isEmpty ? nil : stamps
+    }
+
     static let readyKey = "tom.modelReady.transcription"
     static var isModelReady: Bool {
         UserDefaults.standard.bool(forKey: Self.readyKey) && isModelOnDisk
@@ -168,8 +230,44 @@ actor WhisperKitTranscriber: TranscribingService {
         tomLog("Voice AI: download complete in \(String(format: "%.1f", Date().timeIntervalSince(started)))s")
     }
 
-    nonisolated func transcribe(fileURL: URL) async throws -> TranscriptionOutcome {
-        try await loadAndTranscribe(fileURL: fileURL)
+    nonisolated func transcribe(
+        fileURL: URL,
+        onSegmentDiscovered: (@Sendable (String) -> Void)?
+    ) async throws -> TranscriptionOutcome {
+        try await loadAndTranscribe(fileURL: fileURL, onSegmentDiscovered: onSegmentDiscovered)
+    }
+
+    /// Warm the model into memory ahead of need (e.g. when a live-transcribed
+    /// recording starts) so the first streamed chunk isn't stuck behind the
+    /// cold load. Errors are deliberately swallowed — a failed preload just
+    /// means the first chunk pays the load itself.
+    func preload() async {
+        guard Self.isModelReady else { return }
+        _ = try? await ensurePipe()
+    }
+
+    /// Transcribes raw 16 kHz mono samples — the live-streaming path. Actor
+    /// isolation serialises concurrent chunk requests from multiple sources
+    /// (system + mic), so Whisper never runs two decodes at once. Speaker
+    /// labelling and timeline offsets are the caller's job; segments come
+    /// back chunk-relative under the placeholder "Speaker" label.
+    func transcribeSamples(_ samples: [Float]) async throws -> TranscriptionOutcome {
+        guard Self.isModelReady else { throw TranscriptionError.modelNotLoaded }
+        let pipe = try await ensurePipe()
+        let results = try await pipe.transcribe(audioArray: samples, decodeOptions: Self.decodingOptions)
+        let language = results.first?.language
+        let segments = results.flatMap(\.segments).compactMap { seg -> TranscriptSegment? in
+            let text = Self.cleanWhisperText(seg.text)
+            guard !text.isEmpty, !Self.isHallucination(text) else { return nil }
+            return TranscriptSegment(
+                startTime: TimeInterval(seg.start),
+                endTime: TimeInterval(seg.end),
+                speaker: "Speaker",
+                text: text,
+                words: Self.wordStamps(from: seg)
+            )
+        }
+        return TranscriptionOutcome(segments: segments, language: language)
     }
 
     /// Releases the cached `WhisperKit` instance so its CoreML weights can be
@@ -186,7 +284,10 @@ actor WhisperKitTranscriber: TranscribingService {
         }
     }
 
-    private func loadAndTranscribe(fileURL: URL) async throws -> TranscriptionOutcome {
+    private func loadAndTranscribe(
+        fileURL: URL,
+        onSegmentDiscovered: (@Sendable (String) -> Void)?
+    ) async throws -> TranscriptionOutcome {
         // Refuse to run inference until the model has been explicitly
         // downloaded via Settings/Onboarding. Without this guard, calling
         // `ensurePipe` on a fresh install silently triggers a ~1.5 GB HF
@@ -197,17 +298,28 @@ actor WhisperKitTranscriber: TranscribingService {
         }
         let pipe = try await ensurePipe()
 
+        // Stream utterances to the caller as the decoder discovers them.
+        // The callback lives on the shared pipe, so only install it when the
+        // caller wants live output, and always clear it afterwards — a stale
+        // closure would keep publishing into a finished meeting. Concurrent
+        // streams (system + mic) share the pipe; only one caller passes a
+        // callback (the primary stream), so last-writer-wins is a non-issue.
+        if let onSegmentDiscovered {
+            pipe.segmentDiscoveryCallback = { segments in
+                for seg in segments {
+                    let text = Self.cleanWhisperText(seg.text)
+                    guard !text.isEmpty else { continue }
+                    onSegmentDiscovered(text)
+                }
+            }
+        }
+        defer {
+            if onSegmentDiscovered != nil { pipe.segmentDiscoveryCallback = nil }
+        }
+
         tomLog("Voice AI: transcribing \(fileURL.lastPathComponent)")
         let started = Date()
-        // Tightened from the WhisperKit default of 2.4 so YouTube-outro
-        // hallucinations ("Thank you. Thank you. Thank you. …", "Subscribe
-        // to my channel.") trigger an in-decoder retry at a higher
-        // temperature instead of leaking through to the transcript.
-        // `logProbThreshold` left at its default — confidence-based gating
-        // is more sensitive to legitimate quiet speech and we'd rather
-        // catch hallucinations via compression than via probability.
-        let options = DecodingOptions(compressionRatioThreshold: 2.0)
-        let results = try await pipe.transcribe(audioPath: fileURL.path, decodeOptions: options)
+        let results = try await pipe.transcribe(audioPath: fileURL.path, decodeOptions: Self.decodingOptions)
         // WhisperKit auto-detects language per chunk. For a normal
         // mono-language meeting every chunk reports the same code, so the
         // first chunk's value is representative. For code-switching
@@ -228,13 +340,14 @@ actor WhisperKitTranscriber: TranscribingService {
                 startTime: TimeInterval(seg.start),
                 endTime: TimeInterval(seg.end),
                 speaker: "Speaker",
-                text: text
+                text: text,
+                words: Self.wordStamps(from: seg)
             )
         }
 
-        let grouped = groupBySilenceGaps(segments)
+        let grouped = Self.groupBySilenceGaps(segments)
         let filtered = grouped.filter { seg in
-            guard Self.isRepetitiveHallucination(seg.text) else { return true }
+            guard Self.isHallucination(seg.text) else { return true }
             tomLog("Voice AI: dropped hallucinated segment (\(seg.text.count) chars): \(String(seg.text.prefix(80)))")
             return false
         }
@@ -266,6 +379,59 @@ actor WhisperKitTranscriber: TranscribingService {
     ///
     /// Both checks gate on length ≥40 chars so legitimate short utterances
     /// ("Yeah yeah yeah") survive.
+    /// Umbrella check the pipeline actually filters on: repetition-based
+    /// hallucinations plus the known single-phrase artifacts below.
+    nonisolated static func isHallucination(_ text: String) -> Bool {
+        isRepetitiveHallucination(text) || isKnownNoSpeechArtifact(text)
+    }
+
+    /// Whisper's training-set leakage phrases, normalized (lowercase, no
+    /// punctuation). Emitted verbatim over silence — a lone "Thank you."
+    /// or "Thanks for watching!" too short for the repetition checks (40-char
+    /// floor). A segment is dropped only when its ENTIRE text is one of
+    /// these phrases (or that phrase repeated), so a real "thank you" inside
+    /// normal conversation always survives — silence-gap folding puts it in
+    /// the same utterance as its surrounding speech.
+    private nonisolated static let noSpeechPhrases: Set<String> = [
+        // English
+        "thank you", "thank you very much", "thank you so much", "thanks",
+        "thanks for watching", "thank you for watching",
+        "thanks for watching and see you next time",
+        "subscribe", "please subscribe", "subscribe to my channel",
+        "see you next time", "see you in the next video", "the end", "you",
+        // German
+        "vielen dank", "danke", "danke schön", "vielen dank für ihre aufmerksamkeit",
+        "untertitelung des zdf", "untertitel im auftrag des zdf",
+        "untertitelung im auftrag des zdf", "copyright wdr",
+        // Spanish
+        "gracias", "muchas gracias", "gracias por ver", "suscríbete",
+        // French
+        "merci", "merci beaucoup", "abonnez vous",
+        "sous titrage société radio canada", "sous titrage st 501",
+        // Italian
+        "grazie", "grazie mille", "grazie per aver guardato",
+        "sottotitoli creati dalla comunità amara org",
+    ]
+
+    nonisolated static func isKnownNoSpeechArtifact(_ text: String) -> Bool {
+        let normalized = text.lowercased()
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        guard !normalized.isEmpty else { return false }
+        if noSpeechPhrases.contains(normalized) { return true }
+
+        // "thank you thank you thank you" — a blacklisted phrase repeated
+        // back-to-back, still under the repetition checks' 40-char floor.
+        for phrase in noSpeechPhrases where normalized.hasPrefix(phrase) {
+            let unit = phrase + " "
+            var rest = normalized + " "
+            while rest.hasPrefix(unit) { rest.removeFirst(unit.count) }
+            if rest.isEmpty { return true }
+        }
+        return false
+    }
+
     nonisolated static func isRepetitiveHallucination(_ text: String) -> Bool {
         let cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard cleaned.count >= 40 else { return false }
@@ -357,30 +523,39 @@ actor WhisperKitTranscriber: TranscribingService {
 
     /// Folds adjacent transcript segments into utterance-level segments. New
     /// utterance starts whenever the inter-segment gap exceeds
-    /// `utteranceGapSeconds`. Segments arrive ordered by start time from
-    /// WhisperKit.
-    private nonisolated func groupBySilenceGaps(_ segs: [TranscriptSegment]) -> [TranscriptSegment] {
+    /// `utteranceGapSeconds` (1.5 s — catches natural speech turns without
+    /// splitting mid-sentence pauses). Segments must be ordered by start
+    /// time. Static so the live-streaming session can reuse the exact same
+    /// folding at assembly time.
+    nonisolated static func groupBySilenceGaps(
+        _ segs: [TranscriptSegment],
+        gapSeconds: TimeInterval = 1.5
+    ) -> [TranscriptSegment] {
         guard !segs.isEmpty else { return [] }
 
         var result: [TranscriptSegment] = []
         var current = segs[0]
         var buffer = current.text
+        var words = current.words ?? []
 
         for next in segs.dropFirst() {
             let gap = next.startTime - current.endTime
-            if gap <= utteranceGapSeconds {
+            if gap <= gapSeconds {
                 buffer += " " + next.text
+                words += next.words ?? []
                 current = TranscriptSegment(
                     id: current.id,
                     startTime: current.startTime,
                     endTime: next.endTime,
                     speaker: current.speaker,
-                    text: buffer
+                    text: buffer,
+                    words: words.isEmpty ? nil : words
                 )
             } else {
                 result.append(current)
                 current = next
                 buffer = next.text
+                words = next.words ?? []
             }
         }
         result.append(current)
@@ -445,11 +620,11 @@ enum TranscriptionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidAudioBuffer:
-            "Audio buffer is missing or invalid."
+            String(localized: "Audio buffer is missing or invalid.")
         case .modelNotLoaded:
-            "Whisper isn't downloaded yet. Open Settings → AI Models and finish the model download first."
+            String(localized: "Whisper isn't downloaded yet. Open Settings → AI Models and finish the model download first.")
         case let .transcriptionFailed(reason):
-            "Transcription failed: \(reason)"
+            String(localized: "Transcription failed: \(reason)")
         }
     }
 }

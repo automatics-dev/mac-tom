@@ -29,6 +29,12 @@ final class ProcessingQueue: ObservableObject {
     /// "Queued" badge.
     @Published private(set) var queuedMeetingIds: Set<UUID> = []
 
+    /// Meeting whose job is executing right now (nil when idle). Lets other
+    /// systems (startup recovery) avoid re-enqueuing a meeting that is
+    /// mid-pipeline — such meetings are in a "stuck-looking" state
+    /// (.transcribing) but very much alive.
+    @Published private(set) var activeMeetingId: UUID?
+
     private var pending: [(UUID, @Sendable () async -> Void)] = []
     private var draining = false
 
@@ -60,9 +66,11 @@ final class ProcessingQueue: ObservableObject {
         while !pending.isEmpty {
             let (id, work) = pending.removeFirst()
             queuedMeetingIds.remove(id)
+            activeMeetingId = id
             tomLog("Queue: processing meeting \(id.uuidString.prefix(8)) (\(pending.count) remaining)")
             let started = Date()
             await work()
+            activeMeetingId = nil
             tomLog("Queue: meeting \(id.uuidString.prefix(8)) finished in \(String(format: "%.1f", Date().timeIntervalSince(started)))s")
         }
     }

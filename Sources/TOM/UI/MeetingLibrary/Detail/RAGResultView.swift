@@ -38,14 +38,43 @@ struct RAGResultView: View {
             Divider().background(Color.divider)
                 .padding(.horizontal, 24)
 
-            if appState.ragIsLoading {
+            if appState.ragIsLoading && appState.ragStage == .searching {
                 ThinkingIndicator(stage: appState.ragStage)
                     .frame(maxWidth: .infinity)
             } else {
+                // Retrieval-first: sources land before the answer, so this
+                // branch is reached while synthesis is still running. The
+                // answer streams in as plain text; the markdown render takes
+                // over once generation completes (re-rendering the WKWebView
+                // on every token would flicker and thrash the HTML cache).
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        MarkdownWebView(markdown: appState.ragAnswer)
-                            .frame(maxWidth: .infinity, minHeight: 200, maxHeight: .infinity)
+                        if appState.ragIsLoading {
+                            if appState.ragAnswer.isEmpty {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack(spacing: 8) {
+                                        ProgressView()
+                                            .controlSize(.small)
+                                        Text("Reading and writing the answer…")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.subtleText)
+                                    }
+                                    Text("First question after a quiet stretch loads the model — takes about 10 seconds.")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.subtleText.opacity(0.7))
+                                }
+                            } else {
+                                Text(appState.ragAnswer)
+                                    .font(.system(size: 14))
+                                    .lineSpacing(4)
+                                    .foregroundColor(.primary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .textSelection(.enabled)
+                            }
+                        } else {
+                            MarkdownWebView(markdown: appState.ragAnswer)
+                                .frame(maxWidth: .infinity, minHeight: 200, maxHeight: .infinity)
+                        }
 
                         if !appState.ragSources.isEmpty {
                             Divider().background(Color.divider)
@@ -91,8 +120,8 @@ private struct ThinkingIndicator: View {
     private var statusText: String {
         switch stage {
         case .idle: return ""
-        case .searching: return "Looking across your meetings…"
-        case .synthesizing: return "Reading and writing the answer…"
+        case .searching: return String(localized: "Looking across your meetings…")
+        case .synthesizing: return String(localized: "Reading and writing the answer…")
         }
     }
 
@@ -107,13 +136,6 @@ private struct ThinkingIndicator: View {
                 .font(.system(size: 13))
                 .foregroundColor(.subtleText)
                 .animation(.easeInOut(duration: 0.2), value: stage)
-            if stage == .synthesizing {
-                Text("First question after a quiet stretch loads the model — takes about 10 seconds. Subsequent questions are fast.")
-                    .font(.system(size: 11))
-                    .foregroundColor(.subtleText.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-            }
             Spacer()
         }
     }

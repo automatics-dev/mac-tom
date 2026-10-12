@@ -27,6 +27,14 @@ final class RecordingManager: NSObject, @unchecked Sendable {
     private var micFile: AVAudioFile?
     private var micURL: URL?
 
+    // Live transcription: AppState installs a session before starting the
+    // recording; both audio taps feed it 16 kHz mono samples. nil = classic
+    // transcribe-after-stop. Converters are created lazily on the first
+    // buffer of each source (formats aren't known until capture starts).
+    var streamingSession: StreamingTranscriptionSession?
+    private var systemStreamConverter: StreamingFormatConverter?
+    private var micStreamConverter: StreamingFormatConverter?
+
     // MARK: - Start Recording
 
     func startRecording(window: SCWindow, display: SCDisplay) async throws {
@@ -168,6 +176,7 @@ final class RecordingManager: NSObject, @unchecked Sendable {
             } catch {
                 print("[TOM] mic write error: \(error)")
             }
+            self.feedStreamingSession(buffer: buffer, source: "mic")
         }
 
         do {
@@ -180,6 +189,33 @@ final class RecordingManager: NSObject, @unchecked Sendable {
             self.micFile = nil
             self.micURL = nil
         }
+    }
+
+    // MARK: - Live Transcription Feed
+
+    /// Converts a tap buffer to 16 kHz mono and ships it to the streaming
+    /// session. Called from the tap's own serial queue (mic) or writerQueue
+    /// (system audio) — per-source converters are only ever touched from one
+    /// queue each.
+    private func feedStreamingSession(buffer: AVAudioPCMBuffer, source: String) {
+        guard let session = streamingSession else { return }
+        let converter: StreamingFormatConverter?
+        switch source {
+        case "mic":
+            if micStreamConverter == nil {
+                micStreamConverter = StreamingFormatConverter(from: buffer.format)
+            }
+            converter = micStreamConverter
+        default:
+            if systemStreamConverter == nil {
+                systemStreamConverter = StreamingFormatConverter(from: buffer.format)
+            }
+            converter = systemStreamConverter
+        }
+        guard let converter else { return }
+        let samples = converter.convert(buffer)
+        guard !samples.isEmpty else { return }
+        Task { await session.append(samples, source: source) }
     }
 
     private func stopMicCapture() -> URL? {
@@ -246,6 +282,13 @@ final class RecordingManager: NSObject, @unchecked Sendable {
 
         let fileSize = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
         print("[TOM] Recording saved: \(url.lastPathComponent) (\(fileSize / 1024)KB)")
+
+        // Detach live-transcription plumbing; AppState still holds the
+        // session and calls finish() on it after this returns.
+        streamingSession = nil
+        systemStreamConverter = nil
+        micStreamConverter = nil
+
         return RecordingResult(videoURL: url, micURL: capturedMicURL)
     }
 
@@ -298,6 +341,9 @@ extension RecordingManager: SCStreamOutput {
         case .audio:
             if let audioInput, audioInput.isReadyForMoreMediaData {
                 audioInput.append(sampleBuffer)
+            }
+            if streamingSession != nil, let pcm = sampleBuffer.toPCMBuffer() {
+                feedStreamingSession(buffer: pcm, source: "system")
             }
         case .microphone:
             break

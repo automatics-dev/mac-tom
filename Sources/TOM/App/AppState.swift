@@ -27,6 +27,11 @@ final class AppState: ObservableObject {
     private var currentRecordingKind: MeetingKind = .meeting
     private var cachedDisplay: SCDisplay?
 
+    /// Live-transcription session for the recording in progress (nil when
+    /// live transcription is off or the model isn't ready). Created at
+    /// recording start, drained via `finish()` after stop.
+    private var liveSession: StreamingTranscriptionSession?
+
     // MARK: - Meeting Library
 
     @Published var groups: [MeetingGroup] = []
@@ -57,6 +62,17 @@ final class AppState: ObservableObject {
 
     @Published var showSettings = false
 
+    /// Live transcription preview, keyed by meeting id. Populated while a
+    /// meeting's primary audio stream is being transcribed (each discovered
+    /// utterance appends a line) and cleared as soon as the final segments
+    /// land in the DB — the transcript views switch from this preview to the
+    /// real utterance list at that point.
+    @Published var liveTranscripts: [UUID: String] = [:]
+    /// Volatile tail of the live transcript (Parakeet rolling preview): words
+    /// heard but not yet committed. Rendered after `liveTranscripts`, replaced
+    /// wholesale on every update.
+    @Published var liveVolatile: [UUID: String] = [:]
+
     /// Mirrors `ModelDownloadManager.shared.allReady`. Bridged here so views
     /// observing `AppState` re-render when models finish downloading and so
     /// the recording entry points can short-circuit on a single source of
@@ -76,12 +92,13 @@ final class AppState: ObservableObject {
     /// on-device models not having finished downloading yet.
     var recordingBlockedReason: String? {
         if !aiModelsReady {
-            return "AI models aren't ready yet. Open Settings → AI Models and finish the model downloads."
+            return String(localized: "AI models aren't ready yet. Open Settings → AI Models and finish the model downloads.")
         }
         return nil
     }
 
     private var modelStatusCancellable: AnyCancellable?
+    private var statusIconCancellable: AnyCancellable?
 
     // MARK: - Managers
 
@@ -132,10 +149,28 @@ final class AppState: ObservableObject {
         .receive(on: RunLoop.main)
         .sink { [weak self] ready in
             self?.aiModelsReady = ready
+            // Meetings left mid-pipeline by a crash / force-quit can only be
+            // re-queued once the models are usable — try again on every
+            // readiness flip; the method no-ops after the first real run.
+            if ready {
+                self?.recoverInterruptedMeetings()
+                self?.prewarmVoiceAIIfNeeded()
+            }
         }
+
+        // Mirror recording state onto the menu bar icon (red while live).
+        statusIconCancellable = $isRecording
+            .receive(on: RunLoop.main)
+            .sink { recording in
+                StatusItemController.shared.setRecording(recording)
+            }
 
         loadMeetings()
         loadGroups()
+        let stuckAtLaunch: Set<MeetingState> = [.recording, .transcribing, .processing]
+        interruptedCandidateIds = Set(meetings.filter { stuckAtLaunch.contains($0.state) }.map(\.id))
+        recoverInterruptedMeetings()
+        prewarmVoiceAIIfNeeded()
         startWindowRefreshTimer()
         Self.shared = self
     }
@@ -285,7 +320,6 @@ final class AppState: ObservableObject {
             tomLog("startRecording(window:) blocked: already recording")
             return
         }
-        dropAIModelsForRecording()
         guard let display = cachedDisplay else {
             tomLog("No display available. Refresh windows first.")
             return
@@ -303,6 +337,14 @@ final class AppState: ObservableObject {
             tomLog("Failed to create meeting: \(error)")
             return
         }
+
+        let session = makeLiveSession(
+            meetingId: currentMeetingId!,
+            sources: ["system": "Speaker", "mic": "Me"],
+            primary: "system"
+        )
+        recordingManager.streamingSession = session
+        dropAIModelsForRecording(keepVoiceAI: session != nil)
 
         // Stop window refresh to avoid concurrent SCShareableContent calls
         windowRefreshTimer?.invalidate()
@@ -333,7 +375,6 @@ final class AppState: ObservableObject {
             tomLog("startRecording(display:) blocked: already recording")
             return
         }
-        dropAIModelsForRecording()
         let displayName: String
         if CGDisplayIsBuiltin(display.displayID) != 0 {
             displayName = "Built-in Display"
@@ -357,6 +398,14 @@ final class AppState: ObservableObject {
             tomLog("Failed to create meeting: \(error)")
             return
         }
+
+        let session = makeLiveSession(
+            meetingId: currentMeetingId!,
+            sources: ["system": "Speaker", "mic": "Me"],
+            primary: "system"
+        )
+        recordingManager.streamingSession = session
+        dropAIModelsForRecording(keepVoiceAI: session != nil)
 
         windowRefreshTimer?.invalidate()
         windowRefreshTimer = nil
@@ -389,9 +438,11 @@ final class AppState: ObservableObject {
 
         let meetingId = currentMeetingId
         let startTime = recordingStartTime ?? Date()
+        let session = liveSession
         currentMeetingId = nil
         currentRecordingKind = .meeting
         recordingStartTime = nil
+        liveSession = nil
 
         // Restart window refresh timer
         startWindowRefreshTimer()
@@ -438,6 +489,10 @@ final class AppState: ObservableObject {
                     meeting.state = .transcribing
                 }
                 ProcessingQueue.shared.enqueue(meetingId: meetingId) { [weak self] in
+                    // Drain the live session first: flushes the un-transcribed
+                    // tail and returns the full segment list, or nil if
+                    // streaming failed (→ classic full-file transcription).
+                    let streamed = await session?.finish()
                     await self?.processRecording(
                         meetingId: meetingId,
                         videoURL: fileURL,
@@ -446,7 +501,8 @@ final class AppState: ObservableObject {
                         transcriber: transcriber,
                         ai: ai,
                         embedder: embedder,
-                        storage: storage
+                        storage: storage,
+                        streamedOutcome: streamed
                     )
                 }
             }
@@ -467,7 +523,6 @@ final class AppState: ObservableObject {
             tomLog("startVoiceNote blocked: already recording")
             return
         }
-        dropAIModelsForRecording()
 
         let meetingTitle = "Voice Note"
         let createdMeetingId: UUID
@@ -482,6 +537,14 @@ final class AppState: ObservableObject {
             return
         }
 
+        let session = makeLiveSession(
+            meetingId: createdMeetingId,
+            sources: ["mic": "Me"],
+            primary: "mic"
+        )
+        voiceNoteRecorder.streamingSession = session
+        dropAIModelsForRecording(keepVoiceAI: session != nil)
+
         isRecording = true
         currentTranscript = ""
         recordingStartTime = Date()
@@ -495,6 +558,10 @@ final class AppState: ObservableObject {
             currentRecordingKind = .meeting
             currentMeetingId = nil
             recordingStartTime = nil
+            voiceNoteRecorder.streamingSession = nil
+            liveSession = nil
+            liveTranscripts.removeValue(forKey: createdMeetingId)
+            liveVolatile.removeValue(forKey: createdMeetingId)
             try? storageManager.deleteMeeting(id: createdMeetingId)
             meetings.removeAll { $0.id == createdMeetingId }
             NotificationCenter.default.post(name: .recordingDidFail, object: error)
@@ -504,11 +571,13 @@ final class AppState: ObservableObject {
     private func stopVoiceNote() {
         let meetingId = currentMeetingId
         let startTime = recordingStartTime ?? Date()
+        let session = liveSession
 
         isRecording = false
         currentMeetingId = nil
         currentRecordingKind = .meeting
         recordingStartTime = nil
+        liveSession = nil
 
         let url = voiceNoteRecorder.stopRecording()
 
@@ -516,6 +585,8 @@ final class AppState: ObservableObject {
 
         guard let url else {
             tomLog("Voice note stopped with no audio file (mic empty / not started)")
+            liveTranscripts.removeValue(forKey: meetingId)
+            liveVolatile.removeValue(forKey: meetingId)
             updateMeeting(id: meetingId) { $0.state = .failed }
             return
         }
@@ -535,6 +606,7 @@ final class AppState: ObservableObject {
         let storage = storageManager
 
         ProcessingQueue.shared.enqueue(meetingId: meetingId) { [weak self] in
+            let streamed = await session?.finish()
             await self?.processRecording(
                 meetingId: meetingId,
                 videoURL: url,           // wav file — Whisper accepts it directly
@@ -543,7 +615,8 @@ final class AppState: ObservableObject {
                 transcriber: transcriber,
                 ai: ai,
                 embedder: embedder,
-                storage: storage
+                storage: storage,
+                streamedOutcome: streamed
             )
         }
     }
@@ -656,13 +729,7 @@ final class AppState: ObservableObject {
         }
 
         // Voice notes are single-stream; meetings may have a sibling .mic.wav.
-        let micURL: URL?
-        if meeting.kind == .voiceNote {
-            micURL = nil
-        } else {
-            let micCandidate = videoURL.deletingPathExtension().appendingPathExtension("mic.wav")
-            micURL = FileManager.default.fileExists(atPath: micCandidate.path) ? micCandidate : nil
-        }
+        let micURL = Self.micSidecarURL(for: meeting, videoURL: videoURL)
 
         let meetingId = meeting.id
         let kind = meeting.kind
@@ -680,7 +747,7 @@ final class AppState: ObservableObject {
         updateMeeting(id: meetingId) { meeting in
             meeting.transcript = nil
             meeting.summary = nil
-            meeting.title = "Re-transcribing…"
+            meeting.title = String(localized: "Re-transcribing…")
             // Leave state as-is here (or .transcribing if you prefer); the
             // queue badge takes over until the worker picks the job up.
             meeting.state = .transcribing
@@ -706,6 +773,94 @@ final class AppState: ObservableObject {
         }
     }
 
+    // MARK: - Interrupted-Meeting Recovery
+
+    /// Set once the re-queue pass has actually run so a later model-status
+    /// flap doesn't re-enqueue meetings that are already processing.
+    private var recoveredInterrupted = false
+
+    /// Meetings that were ALREADY stuck when the app launched — the only ones
+    /// recovery may ever touch. Captured once in `init`. Without this frozen
+    /// snapshot, a model-status re-emission during a live pipeline could see
+    /// the in-flight meeting (state .transcribing, no longer "queued") as
+    /// stuck and re-enqueue it — producing a second, redundant transcription
+    /// run right after the first one finished.
+    private var interruptedCandidateIds: Set<UUID> = []
+
+    /// Meetings persisted mid-pipeline (`.recording` / `.transcribing` /
+    /// `.processing`) at launch can never finish on their own — the closures
+    /// driving them died with the previous process — so without this sweep
+    /// they sit on "Transcribing" forever. Recordings still on disk are
+    /// re-queued through the normal pipeline (title and any partial artifacts
+    /// preserved); meetings whose file never made it to disk are marked
+    /// failed. Re-queueing waits for `aiModelsReady`; the failure marking
+    /// doesn't need models and runs immediately.
+    private func recoverInterruptedMeetings() {
+        let stuckStates: Set<MeetingState> = [.recording, .transcribing, .processing]
+        let stuck = meetings.filter {
+            interruptedCandidateIds.contains($0.id)
+                && stuckStates.contains($0.state)
+                && !ProcessingQueue.shared.isQueued($0.id)
+                && ProcessingQueue.shared.activeMeetingId != $0.id
+        }
+        guard !stuck.isEmpty else {
+            recoveredInterrupted = true
+            return
+        }
+
+        var recoverable: [Meeting] = []
+        for meeting in stuck {
+            let url = RecordingManager.recordingsDirectory.appendingPathComponent(meeting.recordingPath)
+            if meeting.recordingPath.isEmpty || !FileManager.default.fileExists(atPath: url.path) {
+                tomLog("Recovery: meeting \(meeting.id.uuidString.prefix(8)) stuck in \(meeting.state.rawValue) with no recording file — marking failed")
+                updateMeeting(id: meeting.id) { $0.state = .failed }
+            } else {
+                recoverable.append(meeting)
+            }
+        }
+
+        guard !recoverable.isEmpty else {
+            recoveredInterrupted = true
+            return
+        }
+        guard aiModelsReady, !recoveredInterrupted else { return }
+        recoveredInterrupted = true
+
+        for meeting in recoverable {
+            tomLog("Recovery: meeting \(meeting.id.uuidString.prefix(8)) '\(meeting.title)' stuck in \(meeting.state.rawValue) — re-queuing pipeline")
+            let videoURL = RecordingManager.recordingsDirectory.appendingPathComponent(meeting.recordingPath)
+            let micURL = Self.micSidecarURL(for: meeting, videoURL: videoURL)
+            let meetingId = meeting.id
+            let kind = meeting.kind
+            let transcriber = transcriptionManager
+            let ai = aiManager
+            let embedder = embeddingManager
+            let storage = storageManager
+
+            updateMeeting(id: meetingId) { $0.state = .transcribing }
+            ProcessingQueue.shared.enqueue(meetingId: meetingId) { [weak self] in
+                await self?.processRecording(
+                    meetingId: meetingId,
+                    videoURL: videoURL,
+                    micURL: micURL,
+                    kind: kind,
+                    transcriber: transcriber,
+                    ai: ai,
+                    embedder: embedder,
+                    storage: storage
+                )
+            }
+        }
+    }
+
+    /// Resolves the optional `.mic.wav` sidecar next to a meeting's recording.
+    /// Voice notes are single-stream and never have one.
+    private static func micSidecarURL(for meeting: Meeting, videoURL: URL) -> URL? {
+        guard meeting.kind != .voiceNote else { return nil }
+        let candidate = videoURL.deletingPathExtension().appendingPathExtension("mic.wav")
+        return FileManager.default.fileExists(atPath: candidate.path) ? candidate : nil
+    }
+
     // MARK: - Shared Post-Recording Pipeline
 
     /// Whisper + AI + embeddings pipeline used by both live recording and
@@ -719,8 +874,29 @@ final class AppState: ObservableObject {
         transcriber: TranscriptionManager,
         ai: AIManager,
         embedder: EmbeddingManager,
-        storage: StorageManager
+        storage: StorageManager,
+        streamedOutcome: TranscriptionOutcome? = nil
     ) async {
+        // Segments already produced live during the recording? Then the
+        // whole full-file stage (and the m4a extraction that feeds it) is
+        // skipped below — the audio was transcribed while it was captured.
+        var liveSegments = (streamedOutcome?.segments.isEmpty == false) ? streamedOutcome : nil
+
+        // Whisper re-transcription: the live (Parakeet) transcript was the
+        // instant draft; discard it and run the full-file pass pinned to
+        // Whisper large-v3-turbo for archival accuracy. The full-file path
+        // applies every hallucination filter, same as the live path.
+        let effectiveTranscriber: TranscriptionManager
+        if WhisperRetranscription.isEnabled {
+            if let live = liveSegments {
+                tomLog("Pipeline: Whisper re-transcription ON — discarding \(live.segments.count) live segments, running full Whisper pass")
+                liveSegments = nil
+            }
+            effectiveTranscriber = TranscriptionManager(service: WhisperKitTranscriber.shared)
+        } else {
+            effectiveTranscriber = transcriber
+        }
+
         // Local WhisperKit accepts most audio formats directly — we still
         // extract m4a from the mp4 because the AppState pipeline uses the
         // extracted file as a clean "Other" source even after the mp4 has
@@ -729,10 +905,10 @@ final class AppState: ObservableObject {
         let extractedM4A = videoURL.deletingPathExtension().appendingPathExtension("m4a")
         let systemAudioURL: URL
         let extractedSysExists: Bool
-        if kind == .voiceNote || kind == .imported {
+        if kind == .voiceNote || kind == .imported || liveSegments != nil {
             systemAudioURL = videoURL
             extractedSysExists = false
-            tomLog("Using audio file directly for transcription")
+            if liveSegments == nil { tomLog("Using audio file directly for transcription") }
         } else {
             do {
                 try await Self.exportAudioOnly(from: videoURL, to: extractedM4A)
@@ -769,53 +945,81 @@ final class AppState: ObservableObject {
         }
 
         do {
-            tomLog("Starting transcription...")
             await MainActor.run { self.updateMeeting(id: meetingId) { $0.state = .transcribing } }
 
-            // Local WhisperKit produces a single-speaker transcript per stream.
-            // Voice notes: single stream = the user → "Me".
-            // Meetings + Imports: far-side audio bucketed under "Speaker"; mic
-            // labelled "Me". The user can rename "Speaker" via the per-meeting
-            // alias UI when only one far-side participant is talking.
-            // Mic is optional — a missing or silent mic just yields a one-sided
-            // transcript.
-            async let systemOutcomeTask: TranscriptionOutcome = transcriber.transcribeFullRecording(fileURL: systemAudioURL)
-            async let micOutcomeTask: TranscriptionOutcome = Self.transcribeMicSafely(
-                micURL: (kind == .voiceNote) ? nil : micURL,
-                transcriber: transcriber
-            )
+            let segments: [TranscriptSegment]
+            let detectedLanguage: String?
 
-            let systemOutcome = try await systemOutcomeTask
-            let micOutcome = await micOutcomeTask
-            let systemSegments = systemOutcome.segments
-            let micSegments = micOutcome.segments
-            // Prefer the system-audio side's detected language — that's
-            // where most meeting content lives. Fall back to the mic side
-            // for voice notes (where system audio doesn't exist) or when
-            // system detection failed.
-            let detectedLanguage = systemOutcome.language ?? micOutcome.language
-
-            let labeledSystem: [TranscriptSegment]
-            if kind == .voiceNote {
-                labeledSystem = systemSegments.map {
-                    TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: "Me", text: $0.text)
-                }
+            if let liveSegments {
+                // Everything was transcribed live while recording; the tail
+                // was flushed in finish(). Segments arrive labelled, folded,
+                // and chronologically ordered.
+                segments = liveSegments.segments
+                detectedLanguage = liveSegments.language
+                tomLog("Pipeline: using \(segments.count) live-transcribed segments — skipping full-file Whisper pass")
             } else {
-                labeledSystem = systemSegments.map {
-                    TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: "Speaker", text: $0.text)
+                tomLog("Starting transcription...")
+                // Local WhisperKit produces a single-speaker transcript per stream.
+                // Voice notes: single stream = the user → "Me".
+                // Meetings + Imports: far-side audio bucketed under "Speaker"; mic
+                // labelled "Me". The user can rename "Speaker" via the per-meeting
+                // alias UI when only one far-side participant is talking.
+                // Mic is optional — a missing or silent mic just yields a one-sided
+                // transcript.
+                //
+                // The primary stream feeds a live preview: every utterance the
+                // decoder discovers is appended to `liveTranscripts[meetingId]`
+                // so the transcript views show text while the file is still being
+                // processed. Only the primary stream streams — interleaving the
+                // concurrent mic pass would garble the preview.
+                let liveUpdate: @Sendable (String) -> Void = { [weak self] text in
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        let existing = self.liveTranscripts[meetingId] ?? ""
+                        self.liveTranscripts[meetingId] = existing.isEmpty ? text : existing + "\n" + text
+                    }
                 }
+                // Register the preview entry *before* transcription starts. The
+                // empty string renders as "loading the model…" in the UI — the
+                // cold load can take minutes (first run after an update recompiles
+                // the CoreML graph), and without this the user stares at a dead
+                // spinner the whole time wondering if anything is happening.
+                await MainActor.run { self.liveTranscripts[meetingId] = "" }
+                async let systemOutcomeTask: TranscriptionOutcome = effectiveTranscriber.transcribeFullRecording(
+                    fileURL: systemAudioURL,
+                    onSegmentDiscovered: liveUpdate
+                )
+                async let micOutcomeTask: TranscriptionOutcome = Self.transcribeMicSafely(
+                    micURL: (kind == .voiceNote) ? nil : micURL,
+                    transcriber: effectiveTranscriber
+                )
+
+                let systemOutcome = try await systemOutcomeTask
+                let micOutcome = await micOutcomeTask
+                let systemSegments = systemOutcome.segments
+                let micSegments = micOutcome.segments
+                // Prefer the system-audio side's detected language — that's
+                // where most meeting content lives. Fall back to the mic side
+                // for voice notes (where system audio doesn't exist) or when
+                // system detection failed.
+                detectedLanguage = systemOutcome.language ?? micOutcome.language
+
+                let systemLabel = (kind == .voiceNote) ? "Me" : "Speaker"
+                let labeledSystem = systemSegments.map {
+                    TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: systemLabel, text: $0.text, words: $0.words)
+                }
+                // Mic stream is always labelled "Me". The two streams (system
+                // → "Speaker", mic → "Me") were transcribed independently with
+                // their own per-segment timestamps, and we just interleave by
+                // startTime so the rendered transcript reads in chronological
+                // order. No echo / similarity heuristic — those false-positive
+                // on real two-person conversations where shared vocabulary is
+                // unavoidable.
+                let labeledMic = micSegments.map {
+                    TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: "Me", text: $0.text, words: $0.words)
+                }
+                segments = (labeledSystem + labeledMic).sorted { $0.startTime < $1.startTime }
             }
-            // Mic stream is always labelled "Me". The two streams (system
-            // → "Speaker", mic → "Me") were transcribed independently with
-            // their own per-segment timestamps, and we just interleave by
-            // startTime so the rendered transcript reads in chronological
-            // order. No echo / similarity heuristic — those false-positive
-            // on real two-person conversations where shared vocabulary is
-            // unavoidable.
-            let labeledMic = micSegments.map {
-                TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: "Me", text: $0.text)
-            }
-            let segments = (labeledSystem + labeledMic).sorted { $0.startTime < $1.startTime }
             // Resolve speaker labels through the meeting's alias map so any prior
             // user renames flow into the AI summary and embeddings on retranscribe.
             // Stored transcript segments keep raw labels so the rename is reversible.
@@ -823,7 +1027,7 @@ final class AppState: ObservableObject {
             let fullTranscript = segments
                 .map { "\(aliases[$0.speaker] ?? $0.speaker): \($0.text)" }
                 .joined(separator: "\n")
-            tomLog("Merged \(labeledSystem.count) primary + \(labeledMic.count) mic segments (kind=\(kind.rawValue))")
+            tomLog("Merged \(segments.count) segments (kind=\(kind.rawValue), live=\(liveSegments != nil))")
 
             try storage.saveTranscriptSegments(segments, meetingId: meetingId)
 
@@ -832,6 +1036,13 @@ final class AppState: ObservableObject {
                     meeting.transcript = fullTranscript
                     meeting.state = .processing
                 }
+                // Final segments are in the DB — swap the live preview for
+                // the real utterance list, and push the segments into the
+                // player if this meeting is on screen so the transcript
+                // appears without reselecting (or ⌘R).
+                self.liveTranscripts.removeValue(forKey: meetingId)
+                self.liveVolatile.removeValue(forKey: meetingId)
+                self.refreshPlayerAfterTranscription(meetingId: meetingId, segments: segments)
             }
 
             tomLog("Transcription complete (\(fullTranscript.count) chars). Running AI...")
@@ -912,15 +1123,17 @@ final class AppState: ObservableObject {
 
             await MainActor.run {
                 let title = self.meetings.first(where: { $0.id == meetingId })?.title ?? "Meeting"
-                self.sendNotification(title: "Meeting Ready", body: "\(title) — Summary and transcript are ready", meetingId: meetingId)
+                self.sendNotification(title: String(localized: "Meeting Ready"), body: String(localized: "\(title) — Summary and transcript are ready"), meetingId: meetingId)
             }
 
         } catch {
             tomLog("Processing failed: \(error)")
             await MainActor.run {
+                self.liveTranscripts.removeValue(forKey: meetingId)
+                self.liveVolatile.removeValue(forKey: meetingId)
                 self.updateMeeting(id: meetingId) { $0.state = .failed }
                 let title = self.meetings.first(where: { $0.id == meetingId })?.title ?? "Meeting"
-                self.sendNotification(title: "Processing Failed", body: "\(title) — Could not generate summary. The on-device model may still be downloading; try again in a moment.", meetingId: meetingId)
+                self.sendNotification(title: String(localized: "Processing Failed"), body: String(localized: "\(title) — Could not generate summary. The on-device model may still be downloading; try again in a moment."), meetingId: meetingId)
             }
         }
     }
@@ -990,12 +1203,29 @@ final class AppState: ObservableObject {
         let url = RecordingManager.recordingsDirectory.appendingPathComponent(meeting.recordingPath)
         let storage = storageManager
         let meetingId = meeting.id
+        let hasVideo = meeting.hasVideo
         Task.detached {
             let segments = (try? storage.fetchTranscriptSegments(meetingId: meetingId)) ?? []
             await MainActor.run {
                 guard self.selectedMeeting?.id == meetingId else { return }
-                self.playerManager.load(url: url, segments: segments)
+                self.playerManager.load(url: url, segments: segments, hasVideo: hasVideo)
             }
+        }
+    }
+
+    /// Pushes freshly-saved transcript segments into the on-screen player the
+    /// moment the pipeline finishes. Without this the player keeps the (empty)
+    /// segment list it loaded when the meeting was selected mid-transcription,
+    /// and the transcript only appears after reselecting the meeting.
+    private func refreshPlayerAfterTranscription(meetingId: UUID, segments: [TranscriptSegment]) {
+        guard selectedMeeting?.id == meetingId,
+              let meeting = meetings.first(where: { $0.id == meetingId }) else { return }
+        if playerManager.player == nil {
+            // Meeting was selected before its recording file existed — do the
+            // full load (player + segments).
+            loadMeetingInPlayer(meeting)
+        } else {
+            playerManager.segments = segments
         }
     }
 
@@ -1113,7 +1343,7 @@ final class AppState: ObservableObject {
 
                 guard !contextChunks.isEmpty else {
                     await MainActor.run {
-                        self.ragAnswer = "No relevant meeting content found for this question."
+                        self.ragAnswer = String(localized: "No relevant meeting content found for this question.")
                         self.ragIsLoading = false
                         self.ragStage = .idle
                         self.dropAIModelsAfterSearch()
@@ -1121,14 +1351,38 @@ final class AppState: ObservableObject {
                     return
                 }
 
-                // 4. LLM synthesis. Includes the Qwen cold-load if it was unloaded.
+                // 4. Retrieval-first: surface the sources as soon as the
+                //    vector search lands, so the user sees *what* was found
+                //    while Qwen cold-loads and writes. The answer then
+                //    streams in token by token.
                 tomLog("Ask: synthesising answer (Think AI may need to load)…")
-                await MainActor.run { self.ragStage = .synthesizing }
-                let answer = try await ai.ragAnswer(question: question, contextChunks: contextChunks)
+                await MainActor.run {
+                    self.ragSources = sources
+                    self.ragStage = .synthesizing
+                }
+
+                // Deltas arrive on the inference thread and are re-applied on
+                // the main actor as monotonic snapshots. Snapshot-assign (not
+                // append) keeps out-of-order Task hops harmless: a stale
+                // snapshot is strictly shorter, and the count guard drops it.
+                // The stage guard drops any straggler that lands after the
+                // final answer/error assignment below.
+                let streamBuffer = RAGStreamBuffer()
+                let answer = try await ai.ragAnswer(
+                    question: question,
+                    contextChunks: contextChunks,
+                    onDelta: { delta in
+                        let snapshot = streamBuffer.append(delta)
+                        Task { @MainActor in
+                            guard self.ragStage == .synthesizing,
+                                  snapshot.count > self.ragAnswer.count else { return }
+                            self.ragAnswer = snapshot
+                        }
+                    }
+                )
 
                 await MainActor.run {
                     self.ragAnswer = answer
-                    self.ragSources = sources
                     self.ragIsLoading = false
                     self.ragStage = .idle
                     self.dropAIModelsAfterSearch()
@@ -1137,7 +1391,7 @@ final class AppState: ObservableObject {
             } catch {
                 tomLog("RAG error: \(error)")
                 await MainActor.run {
-                    self.ragAnswer = "Error: \(error.localizedDescription)"
+                    self.ragAnswer = String(localized: "Error: \(error.localizedDescription)")
                     self.ragIsLoading = false
                     self.ragStage = .idle
                     self.dropAIModelsAfterSearch()
@@ -1148,22 +1402,90 @@ final class AppState: ObservableObject {
 
     // MARK: - AI Model Eviction
 
-    /// Evict every AI model from memory before a recording starts. The
-    /// post-recording pipeline re-loads Whisper → Qwen → Embedder serially
-    /// (each ~10–30 s cold start), so paying that cost later is cheaper than
+    /// Evict AI models from memory before a recording starts. The
+    /// post-recording pipeline re-loads what it needs serially (each
+    /// ~10–30 s cold start), so paying that cost later is cheaper than
     /// holding ~4 GB resident while the recorder is also driving the GPU for
-    /// H.264 encoding. Fire-and-forget — recording start shouldn't block on
-    /// model teardown.
-    private func dropAIModelsForRecording() {
+    /// H.264 encoding. When live transcription is running, Whisper is the
+    /// engine doing the live work — keep it and warm it instead.
+    /// Fire-and-forget — recording start shouldn't block on model teardown.
+    private func dropAIModelsForRecording(keepVoiceAI: Bool = false) {
         let transcriber = transcriptionManager
         let ai = aiManager
         let embedder = embeddingManager
         Task.detached {
-            await transcriber.unload()
+            if keepVoiceAI {
+                await TranscriptionEngine.selected.preload()
+            } else {
+                await transcriber.unload()
+            }
             await ai.unload()
             await embedder.unload()
-            tomLog("Recording: dropped Voice + Think + Search AI to free memory")
+            tomLog("Recording: dropped \(keepVoiceAI ? "Think + Search AI (Voice AI stays live)" : "Voice + Think + Search AI") to free memory")
         }
+    }
+
+    /// One-time-per-binary Whisper warm-up. Loading the model after an app
+    /// update triggers a CoreML/ANE recompile that takes minutes (149–170 s
+    /// measured) — long enough to eat an entire short recording's live
+    /// transcription window. Compiling once in the background right after
+    /// launch means the load at recording time drops to seconds. The compile
+    /// cache persists on disk, so the model is unloaded again immediately —
+    /// no steady-state RAM cost.
+    private var prewarmTask: Task<Void, Never>?
+
+    private func prewarmVoiceAIIfNeeded() {
+        let buildKey = "tom.voiceAIPrewarmedBuild"
+        let currentBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "unknown"
+        let engine = TranscriptionEngine.selected
+        guard prewarmTask == nil,
+              LiveTranscription.isEnabled,
+              engine.isReady,
+              UserDefaults.standard.string(forKey: buildKey) != currentBuild,
+              !isRecording else { return }
+        tomLog("Voice AI: prewarming \(engine.rawValue) for build \(currentBuild) (one-time CoreML compile after update)")
+        prewarmTask = Task.detached(priority: .background) {
+            await engine.preload()
+            // Keep it resident only if a recording started while we compiled.
+            if await !(AppState.shared?.isRecording ?? false) {
+                await engine.service.unload()
+            }
+            UserDefaults.standard.set(currentBuild, forKey: buildKey)
+            tomLog("Voice AI: prewarm complete")
+        }
+    }
+
+    /// Builds the live-transcription session for a new recording, or nil when
+    /// the feature is off / the model isn't downloaded. Discovered utterances
+    /// stream straight into `liveTranscripts[meetingId]` for the preview.
+    private func makeLiveSession(meetingId: UUID, sources: [String: String], primary: String) -> StreamingTranscriptionSession? {
+        guard LiveTranscription.isEnabled, TranscriptionEngine.selected.isReady else {
+            tomLog("Live transcription: disabled (enabled=\(LiveTranscription.isEnabled), engine=\(TranscriptionEngine.selected.rawValue), modelReady=\(TranscriptionEngine.selected.isReady))")
+            return nil
+        }
+        tomLog("Live transcription: session started (sources=\(sources.keys.sorted().joined(separator: "+")))")
+        // Empty-string entry renders as the "warming up" preview immediately.
+        liveTranscripts[meetingId] = ""
+        // Bring the new meeting on screen so the live transcript is visible
+        // without hunting for it; DetailContent opens its Transcript tab.
+        if let meeting = meetings.first(where: { $0.id == meetingId }) {
+            selectedMeeting = meeting
+        }
+        let session = StreamingTranscriptionSession(sources: sources, primary: primary) { [weak self] update in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                for text in update.committed {
+                    let existing = self.liveTranscripts[meetingId] ?? ""
+                    self.liveTranscripts[meetingId] = existing.isEmpty ? text : existing + "\n" + text
+                }
+                // Ignore a late tail once the live view is gone.
+                if let preview = update.preview, self.liveTranscripts[meetingId] != nil {
+                    self.liveVolatile[meetingId] = preview.isEmpty ? nil : preview
+                }
+            }
+        }
+        liveSession = session
+        return session
     }
 
     /// Evict Qwen + embedder immediately after an Ask completes. The next
@@ -1269,7 +1591,7 @@ final class AppState: ObservableObject {
             return
         }
         let content = UNMutableNotificationContent()
-        content.title = "\(meeting.displayName) meeting detected"
+        content.title = String(localized: "\(meeting.displayName) meeting detected")
         content.body = meeting.windowTitle
         content.sound = .default
         content.categoryIdentifier = "MEETING_DETECTED"
@@ -1342,6 +1664,24 @@ final class AppState: ObservableObject {
             if selectedMeeting?.id == id {
                 selectedMeeting = meeting
             }
+        }
+    }
+}
+
+// MARK: - RAG Streaming Buffer
+
+/// Accumulates streamed answer deltas off the main actor. `append` returns
+/// the full text so far, letting the UI apply order-insensitive snapshots
+/// instead of appends (a re-ordered append would duplicate or scramble
+/// text; a re-ordered snapshot is just stale and gets dropped).
+final class RAGStreamBuffer: @unchecked Sendable {
+    private var text = ""
+    private let lock = NSLock()
+
+    func append(_ delta: String) -> String {
+        lock.withLock {
+            text += delta
+            return text
         }
     }
 }

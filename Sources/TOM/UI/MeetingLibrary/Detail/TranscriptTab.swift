@@ -35,6 +35,13 @@ struct TranscriptTabContent: View {
                 }
                 .padding(.horizontal, 32)
                 .padding(.vertical, 20)
+            } else if let live = appState.liveTranscripts[meeting.id] {
+                // Streaming preview while the pipeline transcribes. No inner
+                // ScrollView — this tab already lives inside the detail
+                // window's ScrollView.
+                LiveTranscriptionView(text: live, volatile: appState.liveVolatile[meeting.id] ?? "")
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 20)
             } else if let transcript = liveMeeting.aliasedTranscript, !transcript.isEmpty {
                 Text(transcript)
                     .font(.system(size: 14))
