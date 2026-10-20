@@ -1,3 +1,5 @@
+import AVFoundation
+import Foundation
 import Testing
 @testable import TOM
 
@@ -99,5 +101,119 @@ struct CleanWhisperTextTests {
     @Test("Plain text passes through unchanged")
     func passthrough() {
         #expect(WhisperKitTranscriber.cleanWhisperText("Plain sentence.") == "Plain sentence.")
+    }
+}
+
+@Suite("Meeting title")
+struct MeetingTitleTests {
+
+    @Test("AI title replaces a non-custom title")
+    func aiTitleApplies() {
+        var m = Meeting(title: "Recording — Chrome")
+        m.applyAITitle("Weekly sync")
+        #expect(m.title == "Weekly sync")
+    }
+
+    @Test("AI title never replaces a user-set title")
+    func aiTitleSkipsCustom() {
+        var m = Meeting(title: "Old")
+        m.rename(to: "Client kickoff")
+        m.applyAITitle("Weekly sync")
+        #expect(m.title == "Client kickoff")
+        #expect(m.titleIsCustom)
+    }
+
+    @Test("Empty AI title keeps the current one")
+    func emptyAITitleIgnored() {
+        var m = Meeting(title: "Recording — Chrome")
+        m.applyAITitle("")
+        #expect(m.title == "Recording — Chrome")
+    }
+
+    @Test("Rename trims; empty rename releases the title back to AI")
+    func renameRules() {
+        var m = Meeting(title: "Old")
+        m.rename(to: "  Board review  ")
+        #expect(m.title == "Board review")
+        #expect(m.titleIsCustom)
+        m.rename(to: "   ")
+        #expect(m.title == "Board review")
+        #expect(!m.titleIsCustom)
+    }
+
+    @Test("Custom title survives the save/fetch round trip")
+    func persistsFlag() throws {
+        let home = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: home) }
+        let storage = StorageManager(home: home)
+        var m = try storage.createMeeting(title: "Old")
+        #expect(try storage.fetchMeeting(id: m.id)?.titleIsCustom == false)
+        m.rename(to: "Client kickoff")
+        try storage.updateMeeting(m)
+        let fetched = try storage.fetchMeeting(id: m.id)
+        #expect(fetched?.title == "Client kickoff")
+        #expect(fetched?.titleIsCustom == true)
+    }
+}
+
+@Suite("Meeting media export")
+struct MeetingMediaExportTests {
+    @Test func fileNameReplacesPathSeparators() {
+        let meeting = Meeting(title: "Q3/Q4 review: plan")
+        let name = meeting.exportFileName(ext: "mp4")
+        #expect(!name.contains("/"))
+        #expect(!name.contains(":"))
+        #expect(name.hasPrefix("Q3-Q4 review- plan-"))
+        #expect(name.hasSuffix(".mp4"))
+    }
+
+    @Test func audioExportMixesPendingMic() async throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("tom-export-test-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let recording = dir.appendingPathComponent("rec.m4a")
+        let mic = dir.appendingPathComponent("rec.mic.wav")
+        try Self.writeTone(to: recording, seconds: 1, aac: true)
+        try Self.writeTone(to: mic, seconds: 1, aac: false)
+
+        let output = dir.appendingPathComponent("out.m4a")
+        try await AudioMuxer.exportMeetingMedia(recording: recording, mic: mic, kind: .audio, to: output)
+
+        let duration = try await AVURLAsset(url: output).load(.duration).seconds
+        #expect(abs(duration - 1) < 0.2)
+        // The stored recording is never modified by an export.
+        #expect(!FileManager.default.fileExists(atPath: dir.appendingPathComponent("rec.mic-muxed").path))
+    }
+
+    @Test func audioExportCopiesM4AWithoutMic() async throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("tom-export-test-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let recording = dir.appendingPathComponent("note.m4a")
+        try Self.writeTone(to: recording, seconds: 1, aac: true)
+        let output = dir.appendingPathComponent("out.m4a")
+        try await AudioMuxer.exportMeetingMedia(recording: recording, mic: nil, kind: .audio, to: output)
+
+        #expect(FileManager.default.contentsEqual(atPath: recording.path, andPath: output.path))
+    }
+
+    private static func writeTone(to url: URL, seconds: Double, aac: Bool) throws {
+        let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
+        let settings: [String: Any] = aac
+            ? [AVFormatIDKey: kAudioFormatMPEG4AAC, AVSampleRateKey: 48_000, AVNumberOfChannelsKey: 1]
+            : format.settings
+        let file = try AVAudioFile(forWriting: url, settings: settings)
+        let frames = AVAudioFrameCount(48_000 * seconds)
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames)!
+        buffer.frameLength = frames
+        let samples = buffer.floatChannelData![0]
+        for i in 0..<Int(frames) {
+            samples[i] = 0.2 * sin(2 * .pi * 440 * Float(i) / 48_000)
+        }
+        try file.write(from: buffer)
     }
 }

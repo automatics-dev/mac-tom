@@ -19,7 +19,7 @@ struct MeetingListColumn: View {
         if let gid = appState.selectedGroupId {
             return appState.groups.first { $0.id == gid }?.name ?? "Group"
         }
-        return "All Meetings"
+        return "All Recordings"
     }
 
     var body: some View {
@@ -30,7 +30,7 @@ struct MeetingListColumn: View {
                     Text(selectedGroupName)
                         .font(.system(size: 14))
                         .foregroundColor(.primary)
-                    Text("\(filteredMeetings.count) meetings")
+                    Text("\(filteredMeetings.count) recordings")
                         .font(.system(size: 11))
                         .foregroundColor(.subtleText)
                 }
@@ -48,7 +48,7 @@ struct MeetingListColumn: View {
                         .foregroundColor(.subtleText)
                 }
                 .buttonStyle(.plain)
-                .help(showSearch ? "Hide Search" : "Search Meetings")
+                .help(showSearch ? "Hide Search" : "Search Recordings")
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
@@ -68,7 +68,7 @@ struct MeetingListColumn: View {
             if filteredMeetings.isEmpty && !appState.searchQuery.isEmpty {
                 if #available(macOS 14, *) {
                     ContentUnavailableView(
-                        "No meetings match your search",
+                        "No recordings match your search",
                         systemImage: "magnifyingglass",
                         description: Text("Try a different keyword or clear the search field.")
                     )
@@ -79,7 +79,7 @@ struct MeetingListColumn: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 32))
                             .foregroundColor(.subtleText)
-                        Text("No meetings match your search")
+                        Text("No recordings match your search")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.primary)
                         Text("Try a different keyword or clear the search field.")
@@ -108,6 +108,16 @@ struct MeetingListColumn: View {
                                     })
                                     menu.addItem(.separator())
                                 }
+                                menu.addItem(MeetingMenuItem("Rename…", systemImage: "pencil") {
+                                    appState.renamingMeetingID = meeting.id
+                                })
+                                let export = NSMenuItem(title: String(localized: "Export"), action: nil, keyEquivalent: "")
+                                export.image = NSImage(systemSymbolName: "square.and.arrow.up", accessibilityDescription: nil)
+                                let exportMenu = NSMenu()
+                                exportMenu.autoenablesItems = false
+                                exportMenuItems(for: meeting, appState: appState).forEach(exportMenu.addItem)
+                                export.submenu = exportMenu
+                                menu.addItem(export)
                                 menu.addItem(MeetingMenuItem("New Window", systemImage: "macwindow.badge.plus") {
                                     appState.selectedMeeting = meeting
                                     AppDelegate.shared?.showMeetingDetail(meeting: meeting, appState: appState)
@@ -153,6 +163,30 @@ struct MeetingListColumn: View {
                                 Label("Stop Recording", systemImage: "stop.circle")
                             }
                             Divider()
+                        }
+                        Button {
+                            appState.renamingMeetingID = meeting.id
+                        } label: {
+                            Label("Rename…", systemImage: "pencil")
+                        }
+                        Menu {
+                            if meeting.kind == .learning {
+                                let busy = meeting.state != .completed || appState.exportingMeetingIDs.contains(meeting.id)
+                                ForEach(AIHandoff.Target.allCases, id: \.self) { target in
+                                    Button("Send to \(target.name)") { appState.sendToAI(meeting, target: target) }
+                                        .disabled(busy)
+                                }
+                                Divider()
+                                Button("Spec Folder…") { appState.exportSpecFolder(meeting) }
+                                    .disabled(busy)
+                            }
+                            Button("Markdown") { exportMarkdown(meeting) }
+                            Button("Video (.mp4)") { appState.exportMedia(meeting, kind: .video) }
+                                .disabled(!appState.canExportMedia(meeting, kind: .video))
+                            Button("Audio (.m4a)") { appState.exportMedia(meeting, kind: .audio) }
+                                .disabled(!appState.canExportMedia(meeting, kind: .audio))
+                        } label: {
+                            Label("Export", systemImage: "square.and.arrow.up")
                         }
                         Button {
                             appState.selectedMeeting = meeting

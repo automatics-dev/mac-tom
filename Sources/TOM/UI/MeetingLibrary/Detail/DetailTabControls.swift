@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Tab Enum
 
 enum DetailTab {
-    case summary, transcript
+    case summary, transcript, review
 }
 
 // MARK: - Tab Button

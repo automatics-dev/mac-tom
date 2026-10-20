@@ -32,6 +32,9 @@ struct Meeting: Identifiable, Codable {
     /// values are the user-chosen display names ("Anil", "John"). "Me" is
     /// reserved and never aliased.
     var speakerAliases: [String: String]
+    /// True once the user renamed the meeting. The AI pipeline then leaves
+    /// `title` alone, including on retranscribe.
+    var titleIsCustom: Bool
 
     init(
         id: UUID = UUID(),
@@ -44,7 +47,8 @@ struct Meeting: Identifiable, Codable {
         state: MeetingState = .recording,
         groupId: UUID? = nil,
         kind: MeetingKind = .meeting,
-        speakerAliases: [String: String] = [:]
+        speakerAliases: [String: String] = [:],
+        titleIsCustom: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -57,6 +61,26 @@ struct Meeting: Identifiable, Codable {
         self.groupId = groupId
         self.kind = kind
         self.speakerAliases = speakerAliases
+        self.titleIsCustom = titleIsCustom
+    }
+
+    /// User rename. Blank input releases the title back to the AI: the
+    /// current text stays until the next retranscribe regenerates it.
+    mutating func rename(to newTitle: String) {
+        let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            titleIsCustom = false
+            return
+        }
+        title = trimmed
+        titleIsCustom = true
+    }
+
+    /// Pipeline-generated title. Empty means "no substantive content" and a
+    /// user-set title always wins.
+    mutating func applyAITitle(_ aiTitle: String) {
+        guard !titleIsCustom, !aiTitle.isEmpty else { return }
+        title = aiTitle
     }
 }
 
@@ -72,6 +96,15 @@ extension Meeting {
         guard kind != .voiceNote, !recordingPath.isEmpty else { return false }
         let ext = (recordingPath as NSString).pathExtension.lowercased()
         return ext == "mp4" || ext == "mov"
+    }
+
+    /// Suggested file name for exports: "<title>-<date>.<ext>". Path
+    /// separators (and ":", which Finder shows as "/") become "-".
+    func exportFileName(ext: String) -> String {
+        let base = "\(title)-\(shortDateFormatter.string(from: date))"
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: "-")
+        return "\(base).\(ext)"
     }
 }
 
@@ -122,6 +155,7 @@ enum MeetingKind: String, Codable {
     case meeting       // SCK + mic, two streams, has video
     case voiceNote     // mic-only, audio only
     case imported      // user-imported file
+    case learning      // screen + mic narration with on-screen annotations
 
     /// Human-readable noun used in prompt templates (e.g. "voice note", "meeting").
     var noun: String {
@@ -129,6 +163,7 @@ enum MeetingKind: String, Codable {
         case .meeting: return "meeting"
         case .voiceNote: return "voice note"
         case .imported: return "recording"
+        case .learning: return "screen review session"
         }
     }
 
@@ -137,6 +172,7 @@ enum MeetingKind: String, Codable {
         case .meeting:   return "video"
         case .voiceNote: return "mic"
         case .imported:  return "doc"
+        case .learning:  return "pencil.and.scribble"
         }
     }
 }

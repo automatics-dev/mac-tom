@@ -8,7 +8,14 @@ struct DetailTranscriptContent: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        if !playerManager.segments.isEmpty {
+        if !playerManager.segments.isEmpty && meeting.kind == .learning {
+            ScrollView {
+                ContinuousTranscript(segments: playerManager.segments, currentIndex: playerManager.currentSegmentIndex)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+            }
+            .scrollIndicators(.hidden)
+        } else if !playerManager.segments.isEmpty {
             segmentList
         } else if let live = appState.liveTranscripts[meeting.id] {
             liveTranscription(live, volatile: appState.liveVolatile[meeting.id] ?? "")

@@ -87,8 +87,23 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         }
 
         if appState.isRecording {
-            let elapsed = appState.recordingStartTime.map { Int(Date().timeIntervalSince($0)) } ?? 0
-            menu.addItem(disabledItem(String(format: String(localized: "Recording… %d:%02d"), elapsed / 60, elapsed % 60)))
+            let elapsed = Int(appState.recordingElapsed(at: Date()))
+            let status = appState.isPaused ? String(localized: "Paused %d:%02d") : String(localized: "Recording… %d:%02d")
+            menu.addItem(disabledItem(String(format: status, elapsed / 60, elapsed % 60)))
+            menu.addItem(MeetingMenuItem(
+                appState.isPaused ? String(localized: "Resume Recording") : String(localized: "Pause Recording"),
+                systemImage: appState.isPaused ? "play.circle" : "pause.circle"
+            ) {
+                Task { @MainActor in AppState.shared?.togglePause() }
+            })
+            if appState.currentRecordingKind != .voiceNote {
+                menu.addItem(MeetingMenuItem(
+                    appState.isMicMuted ? String(localized: "Unmute Microphone") : String(localized: "Mute Microphone"),
+                    systemImage: appState.isMicMuted ? "mic" : "mic.slash"
+                ) {
+                    Task { @MainActor in AppState.shared?.toggleMicMute() }
+                })
+            }
             menu.addItem(MeetingMenuItem(String(localized: "Stop Recording"), systemImage: "stop.circle") {
                 tomLog("User action: Stop Recording (menu bar)")
                 Task { @MainActor in AppState.shared?.stopRecording() }
@@ -98,14 +113,10 @@ final class StatusItemController: NSObject, NSMenuDelegate {
                 menu.addItem(disabledItem(reason))
             }
             let canCreate = appState.canCreateMeetings
-            menu.addItem(actionItem(String(localized: "Record a Window…"), systemImage: "rectangle.inset.filled.badge.record", enabled: canCreate) {
-                tomLog("User action: Record a Window… (menu bar)")
+            menu.addItem(actionItem(String(localized: "Start Recording…"), systemImage: "record.circle", enabled: canCreate) {
+                tomLog("User action: Start Recording… (menu bar)")
                 guard let state = AppState.shared else { return }
-                AppDelegate.shared?.showWindowPicker(appState: state)
-            })
-            menu.addItem(actionItem(String(localized: "Record Voice Note"), systemImage: "mic", enabled: canCreate) {
-                tomLog("User action: Record Voice Note (menu bar)")
-                Task { @MainActor in AppState.shared?.startVoiceNote() }
+                AppDelegate.shared?.showRecordPanel(appState: state)
             })
             menu.addItem(actionItem(String(localized: "Upload Recording…"), systemImage: "square.and.arrow.down", enabled: canCreate) {
                 tomLog("User action: Upload Recording… (menu bar)")

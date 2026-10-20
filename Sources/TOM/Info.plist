@@ -29,9 +29,9 @@
     <key>CFBundleIconName</key>
     <string>AppIcon</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>TOM needs microphone access to record meeting audio.</string>
+    <string>TOM needs microphone access to record your voice in meetings, voice notes and feedback sessions.</string>
     <key>NSScreenCaptureUsageDescription</key>
-    <string>TOM needs screen recording access to capture meeting audio from other applications.</string>
+    <string>TOM needs screen recording access to record windows and screens, with their audio.</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.productivity</string>
     <key>NSHumanReadableCopyright</key>

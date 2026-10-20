@@ -82,7 +82,7 @@ struct TOMApp: App {
         // Window scene — singleton by design (macOS 13.0+).
         // openWindow(id: "meeting-library") existing pencere varsa onu öne getirir,
         // yoksa yeni pencere açar. WindowGroup KULLANMA — her çağrıda yeni pencere açar.
-        Window("TOM — Meeting Library", id: "meeting-library") {
+        Window(AppDelegate.libraryTitle, id: "meeting-library") {
             MeetingLibraryView()
                 .environmentObject(appState)   // view-level enjeksiyon — Scene.environmentObject macOS 14+ gerektirir
                 .environmentObject(updater)
@@ -111,8 +111,12 @@ struct TOMApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
     static var shared: AppDelegate?
 
+    /// Library window title; also how the window is found again, so it's
+    /// the same localized string in both places.
+    static let libraryTitle = String(localized: "TOM — Library")
+
     private var meetingDetailWindow: NSWindow?
-    private var windowPickerWindow: NSWindow?
+    private var recordPanelWindow: NSWindow?
     private var onboardingWindow: NSWindow?
 
     private func applyAppIcon() {
@@ -252,7 +256,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
     @MainActor
     func showDashboard(appState: AppState) {
         activateApp()
-        if let window = NSApp.windows.first(where: { $0.title == "TOM — Meeting Library" }) {
+        if let window = NSApp.windows.first(where: { $0.title == AppDelegate.libraryTitle }) {
             window.makeKeyAndOrderFront(nil)
         }
     }
@@ -278,21 +282,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
         meetingDetailWindow = window
     }
 
+    /// The record panel in a small window, for entry points without a
+    /// toolbar to anchor a popover (menu bar, missing last window).
     @MainActor
-    func showWindowPicker(appState: AppState) {
+    func showRecordPanel(appState: AppState) {
         activateApp()
-        if let window = windowPickerWindow {
+        if let window = recordPanelWindow, window.isVisible {
             window.makeKeyAndOrderFront(nil)
             return
         }
-        appState.refreshWindows()
-        let window = makeWindow(
-            title: String(localized: "Choose What to Record"),
-            size: NSSize(width: 700, height: 500),
-            view: WindowPickerView().environmentObject(appState)
-        )
-        window.styleMask.remove(.resizable)
-        windowPickerWindow = window
+        recordPanelWindow?.close()
+        var window: NSWindow?
+        let panel = RecordPanel { window?.close() }.environmentObject(appState)
+        window = makeWindow(title: String(localized: "Record"), size: NSSize(width: 520, height: 560), view: panel)
+        window?.styleMask.remove(.resizable)
+        window?.setContentSize(window?.contentView?.fittingSize ?? NSSize(width: 520, height: 560))
+        recordPanelWindow = window
     }
 
     @MainActor
@@ -300,7 +305,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
         activateApp()
         let panel = NSOpenPanel()
         panel.title = String(localized: "Import Recordings")
-        panel.message = String(localized: "Select one or more audio or video files. Each file is processed sequentially through transcription, summary, and embeddings — files beyond the first show a Queued badge in the meeting list.")
+        panel.message = String(localized: "Select one or more audio or video files. Each file is processed sequentially through transcription, summary, and embeddings — files beyond the first show a Queued badge in the recording list.")
         panel.prompt = String(localized: "Import")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
@@ -346,7 +351,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUs
     @MainActor
     func showSettings(appState: AppState) {
         activateApp()
-        if let window = NSApp.windows.first(where: { $0.title == "TOM — Meeting Library" }) {
+        if let window = NSApp.windows.first(where: { $0.title == AppDelegate.libraryTitle }) {
             window.makeKeyAndOrderFront(nil)
         }
         withAnimation(.spring(duration: 0.3)) {

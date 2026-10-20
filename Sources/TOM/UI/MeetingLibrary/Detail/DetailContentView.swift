@@ -12,6 +12,14 @@ struct DetailContent: View {
             DetailContentHeader(meeting: meeting)
 
             HStack(spacing: 0) {
+                if meeting.kind == .learning {
+                    QuickViewTabButton(title: "Review", icon: "pencil.and.scribble", isSelected: selectedTab == .review) {
+                        if selectedTab != .review {
+                            tomLog("User action: switched meeting tab → Review (\(meeting.id.uuidString.prefix(8)))")
+                        }
+                        selectedTab = .review
+                    }
+                }
                 QuickViewTabButton(title: "Summary", icon: "text.alignleft", isSelected: selectedTab == .summary) {
                     if selectedTab != .summary {
                         tomLog("User action: switched meeting tab → Summary (\(meeting.id.uuidString.prefix(8)))")
@@ -40,7 +48,10 @@ struct DetailContent: View {
                 }
                 Spacer()
 
-                if meeting.state == .completed, selectedTab != .video {
+                if selectedTab == .review {
+                    ExportMenuButton(meeting: meeting, fontSize: 12)
+                        .padding(.trailing, 8)
+                } else if meeting.state == .completed, selectedTab != .video {
                     QuickViewExportButtons(meeting: meeting, activeTab: selectedTab)
                 }
             }
@@ -51,11 +62,22 @@ struct DetailContent: View {
             case .summary:    DetailSummaryContent(meeting: meeting)
             case .transcript: DetailTranscriptContent(meeting: meeting, playerManager: appState.playerManager)
             case .video:      VideoTabContent(meeting: meeting, playerManager: appState.playerManager)
+            case .review:     ReviewTabContent(meeting: meeting)
             }
         }
         // A meeting that is transcribing live opens on its Transcript tab.
         .task(id: meeting.id) {
-            if appState.liveTranscripts[meeting.id] != nil { selectedTab = .transcript }
+            if appState.liveTranscripts[meeting.id] != nil {
+                selectedTab = .transcript
+            } else if meeting.kind == .learning {
+                selectedTab = .review
+            } else if selectedTab == .review {
+                selectedTab = .summary
+            }
+        }
+        // A Learning session watched live switches to its Review once done.
+        .onChange(of: meeting.state) { _, state in
+            if meeting.kind == .learning, state == .completed { selectedTab = .review }
         }
     }
 }

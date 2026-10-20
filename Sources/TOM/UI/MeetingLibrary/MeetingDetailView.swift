@@ -63,6 +63,14 @@ struct MeetingDetailView: View {
 
                     // Tab bar + export buttons
                     HStack(spacing: 0) {
+                        if meeting.kind == .learning {
+                            TabButton(
+                                title: "Review",
+                                icon: "pencil.and.scribble",
+                                isSelected: selectedTab == .review
+                            ) { selectedTab = .review }
+                        }
+
                         TabButton(
                             title: "Summary",
                             icon: "text.alignleft",
@@ -77,7 +85,9 @@ struct MeetingDetailView: View {
 
                         Spacer()
 
-                        if meeting.state == .completed {
+                        if selectedTab == .review {
+                            ExportMenuButton(meeting: meeting, fontSize: 11)
+                        } else if meeting.state == .completed {
                             ExportButtons(meeting: meeting, activeTab: selectedTab)
                         }
                     }
@@ -93,6 +103,8 @@ struct MeetingDetailView: View {
                         SummaryTabContent(meeting: meeting)
                     case .transcript:
                         TranscriptTabContent(meeting: meeting, playerManager: playerManager)
+                    case .review:
+                        ReviewTabContent(meeting: meeting, scrolls: false)
                     }
                 }
             }
@@ -104,5 +116,8 @@ struct MeetingDetailView: View {
         }
         .frame(minWidth: 700, minHeight: 550)
         .background(Color.contentBg)
+        .task(id: meeting.id) {
+            if meeting.kind == .learning { selectedTab = .review }
+        }
     }
 }

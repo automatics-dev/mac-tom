@@ -33,19 +33,25 @@ struct MeetingCard: View {
                             .foregroundColor(.orange)
                             .help("Queued — waiting for the AI pipeline to free up")
                     }
-                    Text(meeting.title)
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundColor(isSelected ? .accent : .primary)
-                        .lineLimit(1)
+                    if appState.renamingMeetingID == meeting.id {
+                        MeetingTitleField(title: meeting.title, fontSize: 13) { newTitle in
+                            if let newTitle { appState.renameMeeting(id: meeting.id, title: newTitle) }
+                            appState.renamingMeetingID = nil
+                        }
+                    } else {
+                        Text(meeting.title)
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(isSelected ? .accent : .primary)
+                            .lineLimit(1)
+                    }
                 }
 
                 HStack {
-                    if meeting.state == .recording, appState.isRecording,
-                       let started = appState.recordingStartTime {
+                    if meeting.state == .recording, appState.isRecording {
                         // Live elapsed time, ticking every second while the
                         // recording runs — duration is only persisted at stop.
                         TimelineView(.periodic(from: .now, by: 1)) { context in
-                            Text(formatDuration(max(0, context.date.timeIntervalSince(started))))
+                            Text(formatDuration(appState.recordingElapsed(at: context.date)))
                                 .font(.system(size: 10, design: .monospaced))
                                 .foregroundColor(.red)
                         }
@@ -77,6 +83,54 @@ struct MeetingCard: View {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .strokeBorder(isSelected ? Color.accent.opacity(0.35) : Color.clear, lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Meeting Title Field
+
+/// Inline title editor. Return or clicking away saves, Esc cancels;
+/// `onFinish` receives the new text, or nil on cancel. Blank text releases
+/// the title back to the AI (see `Meeting.rename(to:)`).
+struct MeetingTitleField: View {
+    let title: String
+    let fontSize: CGFloat
+    let onFinish: (String?) -> Void
+
+    @State private var text = ""
+    @State private var finished = false
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        TextField("Recording title", text: $text)
+            .textFieldStyle(.plain)
+            .font(.system(size: fontSize))
+            .padding(.horizontal, 4)
+            .padding(.vertical, 1)
+            .background(
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .fill(Color.accent.opacity(0.12))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    .strokeBorder(Color.accent.opacity(0.5), lineWidth: 1)
+            )
+            .focused($focused)
+            .onAppear {
+                text = title
+                focused = true
+            }
+            .onSubmit { finish(text) }
+            .onExitCommand { finish(nil) }
+            .onChange(of: focused) { _, isFocused in
+                if !isFocused { finish(text) }
+            }
+    }
+
+    /// Submit and the focus loss it triggers both land here; only the first counts.
+    private func finish(_ value: String?) {
+        guard !finished else { return }
+        finished = true
+        onFinish(value)
     }
 }
 

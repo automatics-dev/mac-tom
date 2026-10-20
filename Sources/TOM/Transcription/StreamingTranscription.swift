@@ -103,16 +103,26 @@ actor StreamingTranscriptionSession {
     /// utterances ("Thank you." × N from silence hallucination) collapse to
     /// one line on screen.
     private var lastLiveText = ""
+    /// Taps mixed down into the primary source before decoding, or nil when
+    /// each tap is its own source.
+    private var mixer: LiveAudioMixer?
 
-    /// - Parameter sources: source key → speaker label, e.g.
-    ///   `["system": "Speaker", "mic": "Me"]`.
+    /// - Parameters:
+    ///   - sources: source key → speaker label, e.g. `["mixed": "Speaker"]`.
+    ///   - mixing: tap keys summed into `primary` instead of being decoded
+    ///     separately — one voice reaching both mic and system audio is then
+    ///     transcribed once, not twice under two labels.
     init(
         sources: [String: String],
         primary: String,
+        mixing: [String] = [],
         onLiveUpdate: @escaping @Sendable (LiveUpdate) -> Void
     ) {
         self.sources = sources.mapValues { Source(label: $0) }
         self.primaryKey = primary
+        // 1 s lag budget: taps drift by milliseconds, but SCK may deliver no
+        // system buffers at all while nothing plays.
+        self.mixer = mixing.isEmpty ? nil : LiveAudioMixer(inputs: mixing, maxLagSamples: Self.sampleRate)
         self.onLiveUpdate = onLiveUpdate
     }
 
@@ -121,7 +131,17 @@ actor StreamingTranscriptionSession {
     /// Append converted samples from an audio tap. Cheap unless a chunk
     /// boundary is crossed, in which case a transcription Task is spawned.
     func append(_ samples: [Float], source key: String) {
-        guard !failed, !finishing, sources[key] != nil else { return }
+        guard !failed, !finishing else { return }
+        if mixer?.inputs.contains(key) == true {
+            let mixed = mixer!.append(samples, from: key)
+            if !mixed.isEmpty { ingest(mixed, key: primaryKey) }
+        } else {
+            ingest(samples, key: key)
+        }
+    }
+
+    private func ingest(_ samples: [Float], key: String) {
+        guard sources[key] != nil else { return }
         sources[key]!.pending.append(contentsOf: samples)
         maybeProcessChunk(key)
         if key == primaryKey { maybePreview() }
@@ -241,6 +261,10 @@ actor StreamingTranscriptionSession {
 
         guard !failed else { return nil }
 
+        if let rest = mixer?.flush(), !rest.isEmpty {
+            sources[primaryKey]?.pending.append(contentsOf: rest)
+        }
+
         for key in sources.keys {
             let src = sources[key]!
             guard src.pending.count >= minTailSamples else { continue }
@@ -311,6 +335,51 @@ actor StreamingTranscriptionSession {
             idx += stride
         }
         return bestIdx
+    }
+}
+
+// MARK: - Live Audio Mixer
+
+/// Sums several 16 kHz mono taps into one stream, sample-aligned by arrival.
+/// Emits only the span every input has delivered; an input lagging more than
+/// `maxLagSamples` behind the furthest one is padded with silence so a tap
+/// that stops delivering can't stall the others.
+struct LiveAudioMixer {
+    let inputs: [String]
+    private let maxLagSamples: Int
+    private var queues: [String: [Float]]
+
+    init(inputs: [String], maxLagSamples: Int) {
+        self.inputs = inputs
+        self.maxLagSamples = maxLagSamples
+        self.queues = Dictionary(uniqueKeysWithValues: inputs.map { ($0, []) })
+    }
+
+    /// Adds samples from one input; returns newly mixed samples (may be empty).
+    mutating func append(_ samples: [Float], from input: String) -> [Float] {
+        guard queues[input] != nil else { return [] }
+        queues[input]!.append(contentsOf: samples)
+        let longest = queues.values.map(\.count).max() ?? 0
+        for key in inputs where queues[key]!.count < longest - maxLagSamples {
+            queues[key]!.append(contentsOf: repeatElement(0, count: longest - maxLagSamples - queues[key]!.count))
+        }
+        return drain(queues.values.map(\.count).min() ?? 0)
+    }
+
+    /// Mixes out everything still buffered, padding shorter inputs.
+    mutating func flush() -> [Float] {
+        drain(queues.values.map(\.count).max() ?? 0)
+    }
+
+    private mutating func drain(_ count: Int) -> [Float] {
+        guard count > 0 else { return [] }
+        var out = [Float](repeating: 0, count: count)
+        for key in inputs {
+            let q = queues[key]!
+            for i in 0..<min(count, q.count) { out[i] += q[i] }
+            queues[key]!.removeFirst(min(count, q.count))
+        }
+        return out.map { min(1, max(-1, $0)) }
     }
 }
 

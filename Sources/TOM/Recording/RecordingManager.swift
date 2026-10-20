@@ -7,9 +7,19 @@ struct RecordingResult {
     let micURL: URL?
 }
 
+/// What a screen/window recording captures besides video.
+struct CaptureOptions: Equatable {
+    var systemAudio = true
+    var microphone = true
+}
+
 final class RecordingManager: NSObject, @unchecked Sendable {
 
     private(set) var isRecording = false
+    /// When capture actually began; t = 0 of the recording's timeline.
+    private(set) var startedAt: Date?
+    /// Display being recorded (display recordings only), for filter updates.
+    private var recordedDisplay: SCDisplay?
 
     private var stream: SCStream?
     private var assetWriter: AVAssetWriter?
@@ -35,40 +45,90 @@ final class RecordingManager: NSObject, @unchecked Sendable {
     private var systemStreamConverter: StreamingFormatConverter?
     private var micStreamConverter: StreamingFormatConverter?
 
-    // MARK: - Start Recording
+    // Pause / mute. `isPaused` and the offset are only touched on
+    // writerQueue (SCK callbacks); the mic tap reads the flags directly —
+    // a one-buffer race at the toggle is harmless.
+    private var isPaused = false
+    private var micMuted = false
+    /// Total paused stretch subtracted from every timestamp after a resume.
+    private var pauseOffset = CMTime.zero
+    private var resumePending = false
+    private var lastAdjustedPTS = CMTime.zero
 
-    func startRecording(window: SCWindow, display: SCDisplay) async throws {
-        guard !isRecording else { return }
-
-        let filter: SCContentFilter
-        if let app = window.owningApplication {
-            filter = SCContentFilter(display: display, including: [app], exceptingWindows: [])
-        } else {
-            filter = SCContentFilter(desktopIndependentWindow: window)
+    func setPaused(_ paused: Bool) {
+        writerQueue.sync {
+            if isPaused && !paused { resumePending = true }
+            isPaused = paused
         }
-
-        let config = SCStreamConfiguration()
-        config.width = Int(window.frame.width) * 2
-        config.height = Int(window.frame.height) * 2
-        try await startCapture(filter: filter, config: config)
     }
 
-    func startRecording(display: SCDisplay) async throws {
+    func setMicMuted(_ muted: Bool) { micMuted = muted }
+
+    // MARK: - Start Recording
+
+    func startRecording(window: SCWindow, options: CaptureOptions = CaptureOptions()) async throws {
+        guard !isRecording else { return }
+
+        // Lock capture to the selected window: it keeps recording that window
+        // when it's moved, covered, or the user switches to another window or
+        // Space. A display filter including the owning app would record
+        // whichever of that app's windows happens to be on screen.
+        let filter = SCContentFilter(desktopIndependentWindow: window)
+
+        let config = SCStreamConfiguration()
+        let scale = CGFloat(filter.pointPixelScale)
+        // The encoder needs even dimensions; a 1x display can yield odd ones.
+        config.width = Int(filter.contentRect.width * scale) & ~1
+        config.height = Int(filter.contentRect.height * scale) & ~1
+        config.capturesAudio = options.systemAudio
+        try await startCapture(filter: filter, config: config, microphone: options.microphone)
+    }
+
+    /// Without system audio the mp4 has no audio track until the mic is
+    /// muxed in after stop.
+    func startRecording(display: SCDisplay, options: CaptureOptions = CaptureOptions()) async throws {
         guard !isRecording else { return }
 
         let filter = SCContentFilter(display: display, excludingWindows: [])
         let config = SCStreamConfiguration()
         config.width = Int(display.width) * 2
         config.height = Int(display.height) * 2
-        try await startCapture(filter: filter, config: config)
+        config.capturesAudio = options.systemAudio
+        recordedDisplay = display
+        try await startCapture(filter: filter, config: config, microphone: options.microphone)
+    }
+
+    /// Hides the given windows (e.g. TOM's own floating controls) from an
+    /// in-progress display recording.
+    func excludeFromRecording(_ windows: [SCWindow]) async {
+        guard let stream, let recordedDisplay else { return }
+        do {
+            try await stream.updateContentFilter(SCContentFilter(display: recordedDisplay, excludingWindows: windows))
+        } catch {
+            tomLog("Recording: failed to exclude windows (non-fatal): \(error)")
+        }
     }
 
     // MARK: - Shared Capture Setup
 
-    private func startCapture(filter: SCContentFilter, config: SCStreamConfiguration) async throws {
+    /// HEVC at native resolution. Same quality as the encoder's default
+    /// H.264 at about three quarters of the size for screen content.
+    static func videoSettings(width: Int, height: Int) -> [String: Any] {
+        [
+            AVVideoCodecKey: AVVideoCodecType.hevc,
+            AVVideoWidthKey: width,
+            AVVideoHeightKey: height,
+            AVVideoColorPropertiesKey: [
+                AVVideoColorPrimariesKey: AVVideoColorPrimaries_ITU_R_709_2,
+                AVVideoTransferFunctionKey: AVVideoTransferFunction_ITU_R_709_2,
+                AVVideoYCbCrMatrixKey: AVVideoYCbCrMatrix_ITU_R_709_2,
+            ],
+        ]
+    }
+
+    private func startCapture(filter: SCContentFilter, config: SCStreamConfiguration, microphone: Bool) async throws {
         config.minimumFrameInterval = CMTime(value: 1, timescale: 30)
         config.pixelFormat = kCVPixelFormatType_32BGRA
-        config.capturesAudio = true
         config.excludesCurrentProcessAudio = true
         config.channelCount = 2
         config.sampleRate = 48_000
@@ -83,12 +143,7 @@ final class RecordingManager: NSObject, @unchecked Sendable {
         let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
 
         // Video input
-        let videoSettings: [String: Any] = [
-            AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: config.width,
-            AVVideoHeightKey: config.height,
-        ]
-        let vInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
+        let vInput = AVAssetWriterInput(mediaType: .video, outputSettings: Self.videoSettings(width: config.width, height: config.height))
         vInput.expectsMediaDataInRealTime = true
 
         let sourcePixelBufferAttributes: [String: Any] = [
@@ -104,34 +159,47 @@ final class RecordingManager: NSObject, @unchecked Sendable {
         videoInput = vInput
         pixelBufferAdaptor = adaptor
 
-        // Audio input
+        // Audio input (system audio; skipped when the caller turned it off —
+        // an input that never receives samples would fail finishWriting).
         let audioSettings: [String: Any] = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
             AVSampleRateKey: 48_000,
             AVNumberOfChannelsKey: 2,
             AVEncoderBitRateKey: 128_000,
         ]
-        let aInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
-        aInput.expectsMediaDataInRealTime = true
-        writer.add(aInput)
-        audioInput = aInput
+        if config.capturesAudio {
+            let aInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+            aInput.expectsMediaDataInRealTime = true
+            writer.add(aInput)
+            audioInput = aInput
+        } else {
+            audioInput = nil
+        }
 
         assetWriter = writer
         sessionStarted = false
         firstTimestamp = nil
+        isPaused = false
+        micMuted = false
+        pauseOffset = .zero
+        resumePending = false
+        lastAdjustedPTS = .zero
 
         // Use a single serial queue for both video and audio to avoid race conditions
         let stream = SCStream(filter: filter, configuration: config, delegate: self)
         try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: writerQueue)
-        try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: writerQueue)
+        if config.capturesAudio {
+            try stream.addStreamOutput(self, type: .audio, sampleHandlerQueue: writerQueue)
+        }
 
         self.stream = stream
         try await stream.startCapture()
+        startedAt = Date()
 
         // Start mic capture in parallel. If it fails (no permission, no input
         // device) we still proceed with the screen recording — system audio
         // alone is better than nothing.
-        startMicCapture(baseURL: url)
+        if microphone { startMicCapture(baseURL: url) }
 
         isRecording = true
         print("[TOM] Recording started: \(url.lastPathComponent)")
@@ -141,11 +209,11 @@ final class RecordingManager: NSObject, @unchecked Sendable {
 
     private func startMicCapture(baseURL: URL) {
         let engine = AVAudioEngine()
+        let inputFormat = MicInput.prepare(engine)
         let input = engine.inputNode
-        let inputFormat = input.outputFormat(forBus: 0)
 
         guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0 else {
-            print("[TOM] Mic input format invalid (rate=\(inputFormat.sampleRate), ch=\(inputFormat.channelCount)). Skipping mic capture.")
+            tomLog("Mic input format invalid (rate=\(inputFormat.sampleRate), ch=\(inputFormat.channelCount)). Skipping mic capture.")
             return
         }
 
@@ -165,16 +233,17 @@ final class RecordingManager: NSObject, @unchecked Sendable {
             self.micFile = file
             self.micURL = micFileURL
         } catch {
-            print("[TOM] Failed to open mic file: \(error). Skipping mic capture.")
+            tomLog("Failed to open mic file: \(error). Skipping mic capture.")
             return
         }
 
         input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
-            guard let self, let file = self.micFile else { return }
+            guard let self, let file = self.micFile, !self.isPaused else { return }
+            if self.micMuted { MicInput.silence(buffer) }
             do {
                 try file.write(from: buffer)
             } catch {
-                print("[TOM] mic write error: \(error)")
+                tomLog("mic write error: \(error)")
             }
             self.feedStreamingSession(buffer: buffer, source: "mic")
         }
@@ -182,12 +251,13 @@ final class RecordingManager: NSObject, @unchecked Sendable {
         do {
             try engine.start()
             self.audioEngine = engine
-            print("[TOM] Mic capture started: \(micFileURL.lastPathComponent) (\(inputFormat.sampleRate)Hz, \(inputFormat.channelCount)ch)")
+            tomLog("Mic capture started: \(micFileURL.lastPathComponent) (\(inputFormat.sampleRate)Hz, \(inputFormat.channelCount)ch, permission=\(AVCaptureDevice.authorizationStatus(for: .audio).rawValue))")
         } catch {
-            print("[TOM] Failed to start audio engine: \(error). Skipping mic capture.")
+            tomLog("Failed to start audio engine: \(error). Skipping mic capture.")
             input.removeTap(onBus: 0)
             self.micFile = nil
             self.micURL = nil
+            try? FileManager.default.removeItem(at: micFileURL)
         }
     }
 
@@ -247,6 +317,8 @@ final class RecordingManager: NSObject, @unchecked Sendable {
         }
         self.stream = nil
         isRecording = false
+        startedAt = nil
+        recordedDisplay = nil
 
         videoInput?.markAsFinished()
         audioInput?.markAsFinished()
@@ -260,14 +332,14 @@ final class RecordingManager: NSObject, @unchecked Sendable {
 
         // Stop mic capture and validate output
         var capturedMicURL = stopMicCapture()
-        if let micPath = capturedMicURL?.path {
-            let size = (try? FileManager.default.attributesOfItem(atPath: micPath)[.size] as? Int) ?? 0
-            if size <= 44 {  // wav header is 44 bytes — anything ≤ that means no samples written
-                print("[TOM] Mic file empty (\(size) bytes), discarding.")
-                try? FileManager.default.removeItem(atPath: micPath)
-                capturedMicURL = nil
+        if let mic = capturedMicURL {
+            if MicInput.hasSamples(mic) {
+                let size = (try? FileManager.default.attributesOfItem(atPath: mic.path)[.size] as? Int) ?? 0
+                tomLog("Mic recording saved: \(mic.lastPathComponent) (\(size / 1024)KB)")
             } else {
-                print("[TOM] Mic recording saved: \(URL(fileURLWithPath: micPath).lastPathComponent) (\(size / 1024)KB)")
+                tomLog("Mic file has no audio, discarding.")
+                try? FileManager.default.removeItem(at: mic)
+                capturedMicURL = nil
             }
         }
 
@@ -327,20 +399,34 @@ extension RecordingManager: SCStreamOutput {
             writer.startWriting()
             writer.startSession(atSourceTime: timestamp)
             firstTimestamp = timestamp
+            lastAdjustedPTS = timestamp
             sessionStarted = true
             print("[TOM] Writer session started at \(timestamp.seconds)s")
         }
+
+        if isPaused { return }
+        // First sample after a resume: fold the paused stretch into the
+        // offset so the file continues after a 0.1 s gap. The gap keeps both
+        // tracks monotonic when the other track's first post-resume buffer
+        // is stamped a little earlier than this one.
+        let pts = sampleBuffer.presentationTimeStamp
+        if resumePending {
+            resumePending = false
+            pauseOffset = CMTimeSubtract(CMTimeSubtract(pts, lastAdjustedPTS), CMTime(value: 1, timescale: 10))
+        }
+        let adjusted = CMTimeSubtract(pts, pauseOffset)
+        if CMTimeCompare(adjusted, lastAdjustedPTS) > 0 { lastAdjustedPTS = adjusted }
 
         switch type {
         case .screen:
             guard let videoInput, videoInput.isReadyForMoreMediaData else { return }
             if let pixelBuffer = sampleBuffer.imageBuffer {
-                let timestamp = sampleBuffer.presentationTimeStamp
-                pixelBufferAdaptor?.append(pixelBuffer, withPresentationTime: timestamp)
+                pixelBufferAdaptor?.append(pixelBuffer, withPresentationTime: adjusted)
             }
         case .audio:
-            if let audioInput, audioInput.isReadyForMoreMediaData {
-                audioInput.append(sampleBuffer)
+            if let audioInput, audioInput.isReadyForMoreMediaData,
+               let retimed = pauseOffset == .zero ? sampleBuffer : sampleBuffer.shifted(by: pauseOffset) {
+                audioInput.append(retimed)
             }
             if streamingSession != nil, let pcm = sampleBuffer.toPCMBuffer() {
                 feedStreamingSession(buffer: pcm, source: "system")
@@ -350,6 +436,28 @@ extension RecordingManager: SCStreamOutput {
         @unknown default:
             break
         }
+    }
+}
+
+private extension CMSampleBuffer {
+    /// Copy with every timestamp moved earlier by `offset` (pause gaps).
+    func shifted(by offset: CMTime) -> CMSampleBuffer? {
+        var count: CMItemCount = 0
+        CMSampleBufferGetSampleTimingInfoArray(self, entryCount: 0, arrayToFill: nil, entriesNeededOut: &count)
+        var timing = [CMSampleTimingInfo](repeating: CMSampleTimingInfo(), count: count)
+        CMSampleBufferGetSampleTimingInfoArray(self, entryCount: count, arrayToFill: &timing, entriesNeededOut: &count)
+        for i in timing.indices {
+            timing[i].presentationTimeStamp = CMTimeSubtract(timing[i].presentationTimeStamp, offset)
+            if timing[i].decodeTimeStamp.isValid {
+                timing[i].decodeTimeStamp = CMTimeSubtract(timing[i].decodeTimeStamp, offset)
+            }
+        }
+        var copy: CMSampleBuffer?
+        CMSampleBufferCreateCopyWithNewTiming(
+            allocator: nil, sampleBuffer: self, sampleTimingEntryCount: count,
+            sampleTimingArray: &timing, sampleBufferOut: &copy
+        )
+        return copy
     }
 }
 

@@ -1,20 +1,22 @@
 # TOM Desktop for Mac
 
-**Meeting intelligence that compounds. Every meeting makes TOM smarter.**
+**Everything you record, searchable. Every recording makes TOM smarter.**
 
-Meeting intelligence for advisors, lawyers, therapists, and founders who can't put client audio in someone else's cloud. Native macOS menu bar app. Fully on-device AI — your recordings, your transcripts, your summaries, your search, all on your Mac. Nothing is ever uploaded. Free and open source under the Apache License 2.0 — no account, no licence keys, no meeting caps.
+Records meetings, voice notes, and screen feedback for advisors, lawyers, therapists, and founders who can't put client audio in someone else's cloud. Native macOS menu bar app. Fully on-device AI — your recordings, your transcripts, your summaries, your search, all on your Mac. Nothing is ever uploaded. Free and open source under the Apache License 2.0 — no account, no licence keys, no recording caps.
 
 *Requires an Apple Silicon Mac running macOS 14.6 (Sonoma) or later.*
 
-*Current version: v1.18.0*
+*Current version: v1.24.0*
 
 ---
 
 ## What TOM Does
 
-TOM lives in your menu bar. Pick a window, hit record, and it captures the meeting silently — no bot joining your call, no participants notified, nothing uploaded anywhere. When the meeting ends, TOM transcribes it, writes a structured summary (TL;DR, action items, decisions, discussion topics, and open questions), and indexes every word for cross-meeting search — all on your Mac.
+TOM lives in your menu bar. Pick a window, hit record, and it captures the meeting silently — no bot joining your call, no participants notified, nothing uploaded anywhere. TOM transcribes while you record. When you stop, it writes a structured summary (TL;DR, action items, decisions, discussion topics, and open questions) and indexes every word for search across all your recordings — all on your Mac.
 
-The longer you use TOM, the smarter it gets. After 60 meetings, you can ask *"what did we agree on pricing with Acme?"* and get a cited answer across 8 conversations with video timestamps. After 120 meetings, you have institutional memory — every decision, every promise, searchable by meaning.
+Meetings are one of three modes. Voice notes record just your mic. Feedback sessions record a window or your screen while you talk through what should change: press ⌥A to draw on the screen and ⌥M to mark a moment, and TOM pairs each mark with what you said. One click copies the annotated screenshots, the notes, and the full transcript, ready to paste into Claude or ChatGPT.
+
+The longer you use TOM, the smarter it gets. After 60 recordings, you can ask *"what did we agree on pricing with Acme?"* and get a cited answer across 8 conversations with video timestamps. After 120 recordings, you have institutional memory — every decision, every promise, searchable by meaning.
 
 > **Questions you can ask TOM:**
 >
@@ -22,7 +24,7 @@ The longer you use TOM, the smarter it gets. After 60 meetings, you can ask *"wh
 > - *"Which objections did EU customers raise about pricing in Q1?"*
 > - *"Did we ever decide who owns the onboarding rewrite?"*
 >
-> TOM searches across every meeting and returns a cited answer with the meeting title, date, and a video timestamp you can click into.
+> TOM searches across every recording and returns a cited answer with the recording title, date, and a video timestamp you can click into.
 
 ---
 
@@ -45,18 +47,20 @@ If you take fewer than two meetings a week, or you're on Windows or an Intel Mac
 | **Invisible recording** | ScreenCaptureKit captures any window — Zoom, Meet, Teams, Webex, Slack huddles, in-person on speakerphone. No bot joins your call. |
 | **Video + audio** | Full H.264/AAC MP4 retained locally. Re-watch screen shares, demos, presentations — not just text. |
 | **Dual-stream capture** | System audio (the other side) and your microphone recorded in parallel, then muxed for playback. |
-| **On-device transcription** | WhisperKit + Whisper large-v3-turbo runs locally on Apple Silicon. Audio never leaves your Mac. |
+| **Live transcript** | Parakeet (via FluidAudio) transcribes word by word while you record, so the transcript is ready when you stop. An optional Whisper large-v3-turbo pass (WhisperKit) refines it afterwards. Audio never leaves your Mac. |
 | **Structured summaries** | Every recording gets a TL;DR, action items, decisions, discussion topics, and open questions. Generated entirely on-device by Qwen 3 4B Instruct (4-bit MLX). |
 | **Map-reduce for long meetings** | Transcripts past ~48K characters (~50 minutes) are chunked, extracted in parallel passes, then reduced to a single coherent summary so 2-hour meetings don't blow the context window. |
 | **Editable AI prompts** | Tune the summary and title prompts in Settings → General → Advanced if you want a different style, length, or set of sections. Prompts use `{{kindNoun}}` and `{{language}}` placeholders. |
-| **Cross-meeting semantic search** | Ask questions in natural language. TOM embeds your query locally, searches every meeting, and returns answers with inline `[1]` citations to the source meetings (title + date) and video timestamps. |
-| **Multilingual** | Embeddings via `multilingual-e5-small` cover 100+ languages. Whisper detects the spoken language and TOM passes it as a hint to the summary/title prompt, so non-English meetings get non-English writeups. |
+| **Search across recordings** | Ask questions in natural language. TOM embeds your query locally, searches every recording, and returns answers with inline `[1]` citations to the source recordings (title + date) and video timestamps. |
+| **Multilingual** | Embeddings via `multilingual-e5-small` cover 100+ languages. Whisper detects the spoken language and TOM passes it as a hint to the summary/title prompt, so non-English recordings get non-English writeups. |
 | **Karaoke video playback** | Watch the recording back with synchronised subtitles that highlight word-by-word as you listen. |
 | **Voice notes** | Mic-only recordings for solo capture — same pipeline, same library. |
+| **Feedback sessions** | Record a window or the whole screen while you narrate. Draw on the screen (⌥A) or mark a moment (⌥M); each annotation gets a screenshot and the words you said around it. Send to Claude or ChatGPT copies everything for one paste, or export a spec folder for a coding agent. |
+| **Export** | Markdown, MP4 video, or M4A audio for any recording. |
 | **File import** | Drop in any `.mp4`, `.m4a`, `.mp3`, `.wav`, `.mov` and TOM transcribes and indexes it. |
-| **Meeting groups** | Apple Notes–style folders. Drag meetings between groups. |
+| **Groups** | Apple Notes–style folders. Drag recordings between groups. |
 | **Auto meeting detection** | Spots Zoom, Google Meet, Teams, Webex and Slack Huddle windows and offers a one-click record prompt. |
-| **Serialised processing queue** | Multiple recordings, retranscribes, or imports queue up FIFO instead of fighting over the GPU. You see a "Queued" badge on meetings waiting their turn. |
+| **Serialised processing queue** | Multiple recordings, retranscribes, or imports queue up FIFO instead of fighting over the GPU. You see a "Queued" badge on recordings waiting their turn. |
 | **Idle model unload** | Whisper and Qwen are dropped from RAM between pipeline stages and after the Ask box has been idle, so TOM doesn't sit on ~4 GB of weights when you're not using it. |
 | **Light & dark mode** | Adaptive semantic colors with an orange accent. |
 
@@ -136,7 +140,7 @@ All settings live under **Settings…** in the menu-bar dropdown or the TOM app 
   - **Think AI** — Qwen 3 4B. Runs on-device. Download status + Re-download.
   - **Search AI** — multilingual-e5-small. Always on-device. Per-model Download / Re-download.
 - **Storage**
-  - Disk usage for `~/.tom/data`, meeting count, *Open Data Folder*.
+  - Disk usage for `~/.tom/data`, recording count, *Open Data Folder*.
   - *Reveal diagnostic log in Finder* — opens `~/Library/Logs/TOM/tom.log`.
 - **About**
   - App name and version.
@@ -215,7 +219,7 @@ If your meeting library is your single most important asset, the relevant guaran
 
 - **macOS 14.6 (Sonoma)+** on Apple Silicon (M1 or later)
 - **~6 GB free disk space** for the model cache (first launch only)
-- **~50 MB app** + storage scales with your meeting library (typical: ~50 MB per hour of recording)
+- **~50 MB app** + storage scales with your recording library
 
 ---
 

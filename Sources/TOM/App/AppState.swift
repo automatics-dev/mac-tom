@@ -24,19 +24,36 @@ final class AppState: ObservableObject {
     @Published var displayThumbnails: [CGDirectDisplayID: NSImage] = [:]
 
     private var currentMeetingId: UUID?
-    private var currentRecordingKind: MeetingKind = .meeting
-    private var cachedDisplay: SCDisplay?
+    private(set) var currentRecordingKind: MeetingKind = .meeting
 
     /// Live-transcription session for the recording in progress (nil when
     /// live transcription is off or the model isn't ready). Created at
     /// recording start, drained via `finish()` after stop.
     private var liveSession: StreamingTranscriptionSession?
 
+    /// Annotation overlay + hotkeys of the Learning recording in progress.
+    @Published private(set) var learningSession: LearningSession?
+
+    /// The record panel's remembered choices; "Start Recording" replays them.
+    @Published var recordingSetup = RecordingSetup.load() {
+        didSet { if recordingSetup != oldValue { recordingSetup.save() } }
+    }
+    @Published private(set) var isPaused = false
+    @Published private(set) var isMicMuted = false
+    /// What the recording in progress captures, for the recording bar.
+    @Published private(set) var recordingSourceLabel = ""
+    private var pausedTotal: TimeInterval = 0
+    private var pauseStartedAt: Date?
+
     // MARK: - Meeting Library
 
     @Published var groups: [MeetingGroup] = []
-    @Published var selectedGroupId: UUID?  // nil = "All Meetings"
+    @Published var selectedGroupId: UUID?  // nil = "All Recordings"
     @Published var meetings: [Meeting] = []
+    /// Meeting whose list card currently shows the inline title editor.
+    @Published var renamingMeetingID: UUID?
+    /// Meetings with a video/audio export in flight; menus show "Exporting…".
+    @Published var exportingMeetingIDs: Set<UUID> = []
     @Published var selectedMeeting: Meeting? {
         didSet {
             let newId = selectedMeeting?.id
@@ -84,7 +101,12 @@ final class AppState: ObservableObject {
     /// silently kick off a pipeline that can't complete and leave meetings
     /// stuck in a failed state — or worse, trigger a multi-GB HuggingFace
     /// fetch from the inference path mid-recording.
-    var canCreateMeetings: Bool { aiModelsReady }
+    var canCreateMeetings: Bool { aiModelsReady && !isFinalizingRecording }
+
+    /// True from Stop until the recorder has released the capture (a
+    /// Learning session first saves its open annotation). A recording
+    /// started in that window would find the recorder still busy.
+    @Published private(set) var isFinalizingRecording = false
 
     /// Human-readable reason recording is blocked, or nil when the user can
     /// start a new meeting. Used for guard logging and intended to be
@@ -93,6 +115,9 @@ final class AppState: ObservableObject {
     var recordingBlockedReason: String? {
         if !aiModelsReady {
             return String(localized: "AI models aren't ready yet. Open Settings → AI Models and finish the model downloads.")
+        }
+        if isFinalizingRecording {
+            return String(localized: "Finishing the previous recording…")
         }
         return nil
     }
@@ -198,7 +223,6 @@ final class AppState: ObservableObject {
                 let content = try await SCShareableContent.excludingDesktopWindows(
                     false, onScreenWindowsOnly: true
                 )
-                self.cachedDisplay = content.displays.first
                 self.availableDisplays = content.displays
 
                 // Capture display thumbnails via ScreenCaptureKit (replaces
@@ -312,37 +336,84 @@ final class AppState: ObservableObject {
     // MARK: - Recording Flow
 
     func startRecording(window: SCWindow) {
+        let title = window.title ?? window.owningApplication?.applicationName ?? "Meeting"
+        recordingSetup.mode = .meeting
+        rememberWindow(window)
+        beginScreenRecording(
+            meetingTitle: "Recording — \(title)",
+            kind: .meeting,
+            options: CaptureOptions(systemAudio: recordingSetup.meetingSystemAudio, microphone: recordingSetup.microphone),
+            sourceLabel: Self.label(for: window),
+            capture: { try await $0.startRecording(window: window, options: $1) }
+        )
+    }
+
+    private func rememberWindow(_ window: SCWindow) {
+        recordingSetup.source = .window
+        recordingSetup.windowBundleID = window.owningApplication?.bundleIdentifier
+        recordingSetup.windowAppName = window.owningApplication?.applicationName
+        recordingSetup.windowTitle = window.title
+    }
+
+    /// "Chrome — Pricing", or whichever of app and title exists.
+    private static func label(for window: SCWindow) -> String {
+        [window.owningApplication?.applicationName, window.title].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " — ")
+    }
+
+    func startRecording(display: SCDisplay) {
+        recordingSetup.mode = .meeting
+        recordingSetup.source = .screen
+        recordingSetup.displayID = display.displayID
+        let name = displayName(for: display)
+        beginScreenRecording(
+            meetingTitle: "Recording — \(name)",
+            kind: .meeting,
+            options: CaptureOptions(systemAudio: recordingSetup.meetingSystemAudio, microphone: recordingSetup.microphone),
+            sourceLabel: name,
+            capture: { try await $0.startRecording(display: display, options: $1) }
+        )
+    }
+
+    /// Shared start for window, screen and Learning recordings: creates the
+    /// meeting, wires live transcription, starts capture off the main actor
+    /// (ScreenCaptureKit can deadlock on it) and rolls everything back if
+    /// capture fails. `onStarted` runs once capture is live.
+    private func beginScreenRecording(
+        meetingTitle: String,
+        kind: MeetingKind,
+        options: CaptureOptions,
+        sourceLabel: String,
+        capture: @escaping (RecordingManager, CaptureOptions) async throws -> Void,
+        onStarted: ((UUID) -> Void)? = nil
+    ) {
         guard canCreateMeetings else {
             tomLog("startRecording blocked: \(recordingBlockedReason ?? "unknown")")
             return
         }
         guard !isRecording else {
-            tomLog("startRecording(window:) blocked: already recording")
+            tomLog("startRecording blocked: already recording")
             return
         }
-        guard let display = cachedDisplay else {
-            tomLog("No display available. Refresh windows first.")
+        guard options.systemAudio || options.microphone else {
+            tomLog("startRecording blocked: microphone and system audio are both off")
             return
         }
+        guard microphoneReady(options.microphone, retry: { [weak self] in
+            self?.beginScreenRecording(meetingTitle: meetingTitle, kind: kind, options: options, sourceLabel: sourceLabel, capture: capture, onStarted: onStarted)
+        }) else { return }
 
-        let windowTitle = window.title ?? window.owningApplication?.applicationName ?? "Meeting"
-        let meetingTitle = "Recording — \(windowTitle)"
-
-        // Create meeting in DB
+        let meeting: Meeting
         do {
-            let meeting = try storageManager.createMeeting(title: meetingTitle)
-            currentMeetingId = meeting.id
-            meetings.insert(meeting, at: 0)
+            meeting = try storageManager.createMeeting(title: meetingTitle, kind: kind)
         } catch {
             tomLog("Failed to create meeting: \(error)")
             return
         }
+        currentMeetingId = meeting.id
+        currentRecordingKind = kind
+        meetings.insert(meeting, at: 0)
 
-        let session = makeLiveSession(
-            meetingId: currentMeetingId!,
-            sources: ["system": "Speaker", "mic": "Me"],
-            primary: "system"
-        )
+        let session = makeScreenLiveSession(meetingId: meeting.id, options: options, label: kind == .learning ? "Me" : "Speaker")
         recordingManager.streamingSession = session
         dropAIModelsForRecording(keepVoiceAI: session != nil)
 
@@ -350,79 +421,238 @@ final class AppState: ObservableObject {
         windowRefreshTimer?.invalidate()
         windowRefreshTimer = nil
 
+        resetRecordingControls()
+        recordingSourceLabel = sourceLabel
         isRecording = true
         currentTranscript = ""
         recordingStartTime = Date()
 
-        // Start capture off the main actor to avoid deadlock with ScreenCaptureKit
         let recorder = recordingManager
+        let meetingId = meeting.id
         Task.detached {
             do {
-                try await recorder.startRecording(window: window, display: display)
+                try await capture(recorder, options)
             } catch {
                 tomLog("Failed to start recording: \(error)")
-                await MainActor.run { self.isRecording = false }
+                await MainActor.run { self.abortStart(meetingId: meetingId) }
+                return
+            }
+            await MainActor.run {
+                guard self.isRecording, self.currentMeetingId == meetingId else { return }
+                onStarted?(meetingId)
             }
         }
     }
 
-    func startRecording(display: SCDisplay) {
-        guard canCreateMeetings else {
-            tomLog("startRecording(display:) blocked: \(recordingBlockedReason ?? "unknown")")
-            return
+    /// Live transcription for whichever audio sources the recording has:
+    /// both mixed into one stream, or the one that's on.
+    private func makeScreenLiveSession(meetingId: UUID, options: CaptureOptions, label: String) -> StreamingTranscriptionSession? {
+        switch (options.systemAudio, options.microphone) {
+        case (true, true):
+            return makeLiveSession(meetingId: meetingId, sources: ["mixed": label], primary: "mixed", mixing: ["system", "mic"])
+        case (true, false):
+            return makeLiveSession(meetingId: meetingId, sources: ["system": label], primary: "system")
+        default:
+            return makeLiveSession(meetingId: meetingId, sources: ["mic": label], primary: "mic")
         }
-        guard !isRecording else {
-            tomLog("startRecording(display:) blocked: already recording")
-            return
+    }
+
+    /// Without microphone permission macOS hands the app silence, so a
+    /// recording that uses the mic checks first. Undecided: asks, and
+    /// `retry` starts the recording once granted. Refused: explains where to
+    /// turn it on. Returns true when recording can start now.
+    private func microphoneReady(_ needed: Bool, retry: @escaping @MainActor () -> Void) -> Bool {
+        guard needed else { return true }
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            return true
+        case .notDetermined:
+            tomLog("Microphone permission not determined — asking")
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                Task { @MainActor in
+                    tomLog("Microphone permission \(granted ? "granted" : "denied")")
+                    if granted { retry() } else { Self.showMicrophoneDenied() }
+                }
+            }
+            return false
+        default:
+            tomLog("startRecording blocked: microphone permission denied")
+            Self.showMicrophoneDenied()
+            return false
         }
-        let displayName: String
+    }
+
+    private static func showMicrophoneDenied() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Microphone access is off")
+        alert.informativeText = String(localized: "TOM needs the microphone to record your voice. Turn it on for TOM in System Settings › Privacy & Security › Microphone, or switch the microphone off in the record panel to record system audio only.")
+        alert.addButton(withTitle: String(localized: "Open System Settings"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        if alert.runModal() == .alertFirstButtonReturn,
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    /// Capture never started: undo the placeholder meeting and state.
+    private func abortStart(meetingId: UUID) {
+        isRecording = false
+        recordingStartTime = nil
+        currentMeetingId = nil
+        currentRecordingKind = .meeting
+        recordingManager.streamingSession = nil
+        liveSession = nil
+        liveTranscripts.removeValue(forKey: meetingId)
+        liveVolatile.removeValue(forKey: meetingId)
+        resetRecordingControls()
+        updateMeeting(id: meetingId) { $0.state = .failed }
+        startWindowRefreshTimer()
+    }
+
+    /// "Built-in Display", "External Display" or "External Display N".
+    func displayName(for display: SCDisplay) -> String {
         if CGDisplayIsBuiltin(display.displayID) != 0 {
-            displayName = "Built-in Display"
-        } else {
-            let externalIndex = availableDisplays
-                .filter { CGDisplayIsBuiltin($0.displayID) == 0 }
-                .firstIndex(where: { $0.displayID == display.displayID })
-            if let idx = externalIndex, availableDisplays.filter({ CGDisplayIsBuiltin($0.displayID) == 0 }).count > 1 {
-                displayName = "External Display \(idx + 1)"
-            } else {
-                displayName = "External Display"
-            }
+            return "Built-in Display"
         }
-        let meetingTitle = "Recording — \(displayName)"
+        let externals = availableDisplays.filter { CGDisplayIsBuiltin($0.displayID) == 0 }
+        if externals.count > 1, let idx = externals.firstIndex(where: { $0.displayID == display.displayID }) {
+            return "External Display \(idx + 1)"
+        }
+        return "External Display"
+    }
 
-        do {
-            let meeting = try storageManager.createMeeting(title: meetingTitle)
-            currentMeetingId = meeting.id
-            meetings.insert(meeting, at: 0)
-        } catch {
-            tomLog("Failed to create meeting: \(error)")
+    // MARK: - Feedback Flow
+
+    /// Starts a Feedback session on a whole display: a recording of the
+    /// narrated review plus the annotation overlay. Annotations and their
+    /// screenshots are saved as they're made; the transcript is merged with
+    /// them afterwards (see `LearningReview`).
+    func startFeedback(display: SCDisplay) {
+        tomLog("User action: Start Feedback session (display=\(display.displayID))")
+        recordingSetup.mode = .feedback
+        recordingSetup.source = .screen
+        recordingSetup.displayID = display.displayID
+        beginFeedback(title: displayName(for: display), display: display, window: nil) {
+            try await $0.startRecording(display: display, options: $1)
+        }
+    }
+
+    /// Feedback on one window: the video is that window alone, the overlay
+    /// covers the display it's on, and screenshots show just the window.
+    func startFeedback(window: SCWindow) {
+        tomLog("User action: Start Feedback session (window=\(window.windowID))")
+        guard let display = display(containing: window) else {
+            tomLog("Feedback: no display for window \(window.windowID)")
             return
         }
+        recordingSetup.mode = .feedback
+        rememberWindow(window)
+        beginFeedback(title: Self.label(for: window), display: display, window: window) {
+            try await $0.startRecording(window: window, options: $1)
+        }
+    }
 
-        let session = makeLiveSession(
-            meetingId: currentMeetingId!,
-            sources: ["system": "Speaker", "mic": "Me"],
-            primary: "system"
-        )
-        recordingManager.streamingSession = session
-        dropAIModelsForRecording(keepVoiceAI: session != nil)
-
-        windowRefreshTimer?.invalidate()
-        windowRefreshTimer = nil
-
-        isRecording = true
-        currentTranscript = ""
-        recordingStartTime = Date()
-
+    private func beginFeedback(
+        title: String,
+        display: SCDisplay,
+        window: SCWindow?,
+        capture: @escaping (RecordingManager, CaptureOptions) async throws -> Void
+    ) {
         let recorder = recordingManager
-        Task.detached {
-            do {
-                try await recorder.startRecording(display: display)
-            } catch {
-                tomLog("Failed to start recording: \(error)")
-                await MainActor.run { self.isRecording = false }
+        let storage = storageManager
+        beginScreenRecording(
+            meetingTitle: "Feedback — \(title)",
+            kind: .learning,
+            options: CaptureOptions(systemAudio: recordingSetup.feedbackSystemAudio, microphone: recordingSetup.microphone),
+            sourceLabel: title,
+            capture: capture
+        ) { [weak self] meetingId in
+            guard let self else { return }
+            guard let learning = LearningSession(
+                meetingId: meetingId, display: display, window: window,
+                recordingStart: recorder.startedAt ?? Date(), storage: storage,
+                pausedDuration: { [weak self] in self?.pausedDuration() ?? 0 },
+                onStop: { [weak self] in self?.stopRecording() }
+            ) else {
+                tomLog("Feedback: no NSScreen for display \(display.displayID); recording without overlay")
+                return
+            }
+            self.learningSession = learning
+            Task {
+                // A window recording never contains the HUD.
+                if let hud = await learning.start(), window == nil {
+                    await recorder.excludeFromRecording([hud])
+                }
             }
         }
+    }
+
+    /// The display showing most of `window`.
+    private func display(containing window: SCWindow) -> SCDisplay? {
+        let area = { (d: SCDisplay) -> CGFloat in
+            let overlap = d.frame.intersection(window.frame)
+            return overlap.isNull ? 0 : overlap.width * overlap.height
+        }
+        return availableDisplays.max { area($0) < area($1) }.flatMap { area($0) > 0 ? $0 : nil } ?? lastDisplay
+    }
+
+    // MARK: - Recording Controls
+
+    /// The remembered display, or the main one.
+    var lastDisplay: SCDisplay? {
+        availableDisplays.first { $0.displayID == recordingSetup.displayID }
+            ?? availableDisplays.first { CGDisplayIsMain($0.displayID) != 0 }
+            ?? availableDisplays.first
+    }
+
+    /// The remembered window: same app and title, else that app's first.
+    var lastWindow: SCWindow? {
+        guard let bundle = recordingSetup.windowBundleID else { return nil }
+        let candidates = availableWindows.filter { $0.owningApplication?.bundleIdentifier == bundle }
+        return candidates.first { $0.title == recordingSetup.windowTitle } ?? candidates.first
+    }
+
+    func togglePause() {
+        guard isRecording else { return }
+        if isPaused {
+            pausedTotal += Date().timeIntervalSince(pauseStartedAt ?? Date())
+            pauseStartedAt = nil
+        } else {
+            pauseStartedAt = Date()
+        }
+        isPaused.toggle()
+        if currentRecordingKind == .voiceNote {
+            voiceNoteRecorder.isPaused = isPaused
+        } else {
+            recordingManager.setPaused(isPaused)
+        }
+        tomLog("User action: \(isPaused ? "Pause" : "Resume") recording")
+    }
+
+    func toggleMicMute() {
+        guard isRecording, currentRecordingKind != .voiceNote else { return }
+        isMicMuted.toggle()
+        recordingManager.setMicMuted(isMicMuted)
+        tomLog("User action: Mic \(isMicMuted ? "muted" : "unmuted")")
+    }
+
+    /// Paused time so far, including a pause in progress.
+    func pausedDuration(at date: Date = Date()) -> TimeInterval {
+        pausedTotal + (pauseStartedAt.map { date.timeIntervalSince($0) } ?? 0)
+    }
+
+    /// Recording time shown in timers: wall time minus pauses.
+    func recordingElapsed(at date: Date) -> TimeInterval {
+        guard let start = recordingStartTime else { return 0 }
+        return max(0, date.timeIntervalSince(start) - pausedDuration(at: date))
+    }
+
+    private func resetRecordingControls() {
+        isPaused = false
+        isMicMuted = false
+        pausedTotal = 0
+        pauseStartedAt = nil
+        recordingSourceLabel = ""
     }
 
     func stopRecording() {
@@ -439,10 +669,14 @@ final class AppState: ObservableObject {
         let meetingId = currentMeetingId
         let startTime = recordingStartTime ?? Date()
         let session = liveSession
+        let kind = currentRecordingKind
+        let learning = learningSession
         currentMeetingId = nil
         currentRecordingKind = .meeting
         recordingStartTime = nil
         liveSession = nil
+        learningSession = nil
+        resetRecordingControls()
 
         // Restart window refresh timer
         startWindowRefreshTimer()
@@ -452,6 +686,7 @@ final class AppState: ObservableObject {
         let ai = aiManager
         let embedder = embeddingManager
         let storage = storageManager
+        isFinalizingRecording = true
 
         // File finalisation (ScreenCaptureKit stop + writing the mp4 to disk)
         // runs immediately and is NOT inference-bound, so it doesn't share the
@@ -459,8 +694,12 @@ final class AppState: ObservableObject {
         // post-recording pipeline is enqueued so it serialises with anything
         // else the user has triggered.
         Task.detached {
+            // Close an open annotation (its screenshot needs the overlay)
+            // before capture stops.
+            await learning?.end()
             let result: RecordingResult
             do {
+                defer { Task { @MainActor in self.isFinalizingRecording = false } }
                 result = try await recorder.stopRecording()
                 tomLog("Recording saved: \(result.videoURL.path)")
                 if let mic = result.micURL { tomLog("Mic saved: \(mic.path)") }
@@ -477,8 +716,15 @@ final class AppState: ObservableObject {
 
             guard let meetingId else { return }
 
+            // The video stops growing while the screen is static, so the mic
+            // (when present) is the better measure of how long it ran.
             let asset = AVURLAsset(url: fileURL)
-            let duration: TimeInterval = (try? await asset.load(.duration).seconds) ?? Date().timeIntervalSince(startTime)
+            let videoSeconds = (try? await asset.load(.duration).seconds) ?? Date().timeIntervalSince(startTime)
+            var micSeconds: TimeInterval = 0
+            if let micURL, let seconds = try? await AVURLAsset(url: micURL).load(.duration).seconds {
+                micSeconds = seconds
+            }
+            let duration: TimeInterval = max(videoSeconds, micSeconds)
             let relativePath = fileURL.lastPathComponent
             tomLog("Duration: \(Int(duration))s")
 
@@ -497,7 +743,7 @@ final class AppState: ObservableObject {
                         meetingId: meetingId,
                         videoURL: fileURL,
                         micURL: micURL,
-                        kind: .meeting,
+                        kind: kind,
                         transcriber: transcriber,
                         ai: ai,
                         embedder: embedder,
@@ -523,6 +769,7 @@ final class AppState: ObservableObject {
             tomLog("startVoiceNote blocked: already recording")
             return
         }
+        guard microphoneReady(true, retry: { [weak self] in self?.startVoiceNote() }) else { return }
 
         let meetingTitle = "Voice Note"
         let createdMeetingId: UUID
@@ -545,6 +792,9 @@ final class AppState: ObservableObject {
         voiceNoteRecorder.streamingSession = session
         dropAIModelsForRecording(keepVoiceAI: session != nil)
 
+        recordingSetup.mode = .voiceNote
+        resetRecordingControls()
+        recordingSourceLabel = String(localized: "Voice note")
         isRecording = true
         currentTranscript = ""
         recordingStartTime = Date()
@@ -570,8 +820,9 @@ final class AppState: ObservableObject {
 
     private func stopVoiceNote() {
         let meetingId = currentMeetingId
-        let startTime = recordingStartTime ?? Date()
+        let elapsed = recordingElapsed(at: Date())
         let session = liveSession
+        resetRecordingControls()
 
         isRecording = false
         currentMeetingId = nil
@@ -591,7 +842,7 @@ final class AppState: ObservableObject {
             return
         }
 
-        let duration = Date().timeIntervalSince(startTime)
+        let duration = elapsed
         let relativePath = url.lastPathComponent
 
         updateMeeting(id: meetingId) { meeting in
@@ -747,7 +998,9 @@ final class AppState: ObservableObject {
         updateMeeting(id: meetingId) { meeting in
             meeting.transcript = nil
             meeting.summary = nil
-            meeting.title = String(localized: "Re-transcribing…")
+            if !meeting.titleIsCustom {
+                meeting.title = String(localized: "Re-transcribing…")
+            }
             // Leave state as-is here (or .transcribing if you prefer); the
             // queue badge takes over until the worker picks the job up.
             meeting.state = .transcribing
@@ -905,8 +1158,26 @@ final class AppState: ObservableObject {
         let extractedM4A = videoURL.deletingPathExtension().appendingPathExtension("m4a")
         let systemAudioURL: URL
         let extractedSysExists: Bool
-        if kind == .voiceNote || kind == .imported || liveSegments != nil {
-            systemAudioURL = videoURL
+        // Screen recordings made without system audio have a silent video
+        // until the mic is muxed in below.
+        var videoHasAudio = true
+        if kind == .learning || kind == .meeting, let tracks = try? await AVURLAsset(url: videoURL).loadTracks(withMediaType: .audio) {
+            videoHasAudio = !tracks.isEmpty
+        }
+        // Nothing to transcribe (mic gave no audio and system audio was
+        // off): keep the recording, and a Feedback session's annotations,
+        // rather than failing it.
+        if !videoHasAudio && micURL == nil {
+            tomLog("Pipeline: recording has no audio — skipping transcription")
+            await MainActor.run {
+                self.liveTranscripts.removeValue(forKey: meetingId)
+                self.liveVolatile.removeValue(forKey: meetingId)
+                self.updateMeeting(id: meetingId) { $0.state = .completed }
+            }
+            return
+        }
+        if kind == .voiceNote || kind == .imported || liveSegments != nil || !videoHasAudio {
+            systemAudioURL = videoHasAudio ? videoURL : (micURL ?? videoURL)
             extractedSysExists = false
             if liveSegments == nil { tomLog("Using audio file directly for transcription") }
         } else {
@@ -932,6 +1203,7 @@ final class AppState: ObservableObject {
         // the extract above stays a clean "Other" source. Failure is non-fatal —
         // the recording still has system audio and a mic.wav sidecar. Idempotent
         // via a `.mic-muxed` marker so retranscribe doesn't re-mux.
+        var transcriptionAudioURL = systemAudioURL
         if kind != .voiceNote, let micURL {
             do {
                 try await AudioMuxer.muxMicIntoVideo(
@@ -939,6 +1211,12 @@ final class AppState: ObservableObject {
                     micURL: micURL,
                     preExtractedSysAudio: extractedSysExists ? extractedM4A : nil
                 )
+                // Transcribe one mixed stream (mic + system) rather than two
+                // separate ones: a voice that reaches both sources (speakers,
+                // sidetone, browser monitoring) would otherwise be transcribed
+                // twice under two speaker labels, while headphone users still
+                // keep their own words via the mic half of the mix.
+                transcriptionAudioURL = videoURL
             } catch {
                 tomLog("Mic-into-video mux failed (continuing without mux): \(error)")
             }
@@ -959,19 +1237,15 @@ final class AppState: ObservableObject {
                 tomLog("Pipeline: using \(segments.count) live-transcribed segments — skipping full-file Whisper pass")
             } else {
                 tomLog("Starting transcription...")
-                // Local WhisperKit produces a single-speaker transcript per stream.
-                // Voice notes: single stream = the user → "Me".
-                // Meetings + Imports: far-side audio bucketed under "Speaker"; mic
-                // labelled "Me". The user can rename "Speaker" via the per-meeting
-                // alias UI when only one far-side participant is talking.
-                // Mic is optional — a missing or silent mic just yields a one-sided
-                // transcript.
+                // One stream, one label. Voice notes and Learning
+                // sessions: the user narrating → "Me".
+                // Meetings: mic + system mixed (see mux above) → "Speaker";
+                // the user can rename it via the per-meeting alias UI.
+                // Imports: the file's own audio → "Speaker".
                 //
-                // The primary stream feeds a live preview: every utterance the
-                // decoder discovers is appended to `liveTranscripts[meetingId]`
-                // so the transcript views show text while the file is still being
-                // processed. Only the primary stream streams — interleaving the
-                // concurrent mic pass would garble the preview.
+                // Every utterance the decoder discovers is appended to
+                // `liveTranscripts[meetingId]` so the transcript views show
+                // text while the file is still being processed.
                 let liveUpdate: @Sendable (String) -> Void = { [weak self] text in
                     Task { @MainActor [weak self] in
                         guard let self else { return }
@@ -985,40 +1259,16 @@ final class AppState: ObservableObject {
                 // the CoreML graph), and without this the user stares at a dead
                 // spinner the whole time wondering if anything is happening.
                 await MainActor.run { self.liveTranscripts[meetingId] = "" }
-                async let systemOutcomeTask: TranscriptionOutcome = effectiveTranscriber.transcribeFullRecording(
-                    fileURL: systemAudioURL,
+                let outcome = try await effectiveTranscriber.transcribeFullRecording(
+                    fileURL: transcriptionAudioURL,
                     onSegmentDiscovered: liveUpdate
                 )
-                async let micOutcomeTask: TranscriptionOutcome = Self.transcribeMicSafely(
-                    micURL: (kind == .voiceNote) ? nil : micURL,
-                    transcriber: effectiveTranscriber
-                )
+                detectedLanguage = outcome.language
 
-                let systemOutcome = try await systemOutcomeTask
-                let micOutcome = await micOutcomeTask
-                let systemSegments = systemOutcome.segments
-                let micSegments = micOutcome.segments
-                // Prefer the system-audio side's detected language — that's
-                // where most meeting content lives. Fall back to the mic side
-                // for voice notes (where system audio doesn't exist) or when
-                // system detection failed.
-                detectedLanguage = systemOutcome.language ?? micOutcome.language
-
-                let systemLabel = (kind == .voiceNote) ? "Me" : "Speaker"
-                let labeledSystem = systemSegments.map {
-                    TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: systemLabel, text: $0.text, words: $0.words)
+                let label = (kind == .voiceNote || kind == .learning) ? "Me" : "Speaker"
+                segments = outcome.segments.map {
+                    TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: label, text: $0.text, words: $0.words)
                 }
-                // Mic stream is always labelled "Me". The two streams (system
-                // → "Speaker", mic → "Me") were transcribed independently with
-                // their own per-segment timestamps, and we just interleave by
-                // startTime so the rendered transcript reads in chronological
-                // order. No echo / similarity heuristic — those false-positive
-                // on real two-person conversations where shared vocabulary is
-                // unavoidable.
-                let labeledMic = micSegments.map {
-                    TranscriptSegment(startTime: $0.startTime, endTime: $0.endTime, speaker: "Me", text: $0.text, words: $0.words)
-                }
-                segments = (labeledSystem + labeledMic).sorted { $0.startTime < $1.startTime }
             }
             // Resolve speaker labels through the meeting's alias map so any prior
             // user renames flow into the AI summary and embeddings on retranscribe.
@@ -1087,9 +1337,7 @@ final class AppState: ObservableObject {
                 self.updateMeeting(id: meetingId) { meeting in
                     // Empty AI responses mean "no substantive content" — keep the
                     // default title/summary instead of overwriting with junk.
-                    if !result.title.isEmpty {
-                        meeting.title = result.title
-                    }
+                    meeting.applyAITitle(result.title)
                     if !result.summary.isEmpty {
                         meeting.summary = result.summary
                     }
@@ -1123,7 +1371,7 @@ final class AppState: ObservableObject {
 
             await MainActor.run {
                 let title = self.meetings.first(where: { $0.id == meetingId })?.title ?? "Meeting"
-                self.sendNotification(title: String(localized: "Meeting Ready"), body: String(localized: "\(title) — Summary and transcript are ready"), meetingId: meetingId)
+                self.sendNotification(title: String(localized: "Recording Ready"), body: String(localized: "\(title) — Summary and transcript are ready"), meetingId: meetingId)
             }
 
         } catch {
@@ -1139,22 +1387,6 @@ final class AppState: ObservableObject {
     }
 
     // MARK: - Transcription Helpers
-
-    /// Mic transcription is always optional — a missing or failing mic just yields
-    /// a one-sided transcript instead of failing the whole meeting. Returns `[]`
-    /// when `micURL` is nil or any step throws.
-    private static func transcribeMicSafely(
-        micURL: URL?,
-        transcriber: TranscriptionManager
-    ) async -> TranscriptionOutcome {
-        guard let micURL else { return TranscriptionOutcome(segments: [], language: nil) }
-        do {
-            return try await transcriber.transcribeFullRecording(fileURL: micURL)
-        } catch {
-            tomLog("Mic transcription failed (continuing with system audio only): \(error)")
-            return TranscriptionOutcome(segments: [], language: nil)
-        }
-    }
 
     // MARK: - Audio Export
 
@@ -1274,7 +1506,7 @@ final class AppState: ObservableObject {
         if let gid = groupId {
             target = groups.first(where: { $0.id == gid })?.name ?? "group \(gid.uuidString.prefix(8))"
         } else {
-            target = "All Meetings (ungrouped)"
+            target = "All Recordings (ungrouped)"
         }
         tomLog("User action: moved meeting \(meetingId.uuidString.prefix(8)) → \(target)")
     }
@@ -1302,7 +1534,7 @@ final class AppState: ObservableObject {
         let askStarted = Date()
 
         // Scope retrieval to the selected sidebar group. nil selection
-        // ("All Meetings") searches everything; a selected group restricts the
+        // ("All Recordings") searches everything; a selected group restricts the
         // search to its meetings — an empty group yields no results.
         let scopedMeetingIds: Set<UUID>? = selectedGroupId.map { _ in
             Set(filteredMeetingsByGroup.map(\.id))
@@ -1343,7 +1575,7 @@ final class AppState: ObservableObject {
 
                 guard !contextChunks.isEmpty else {
                     await MainActor.run {
-                        self.ragAnswer = String(localized: "No relevant meeting content found for this question.")
+                        self.ragAnswer = String(localized: "Nothing in your recordings answers this question.")
                         self.ragIsLoading = false
                         self.ragStage = .idle
                         self.dropAIModelsAfterSearch()
@@ -1458,7 +1690,12 @@ final class AppState: ObservableObject {
     /// Builds the live-transcription session for a new recording, or nil when
     /// the feature is off / the model isn't downloaded. Discovered utterances
     /// stream straight into `liveTranscripts[meetingId]` for the preview.
-    private func makeLiveSession(meetingId: UUID, sources: [String: String], primary: String) -> StreamingTranscriptionSession? {
+    private func makeLiveSession(
+        meetingId: UUID,
+        sources: [String: String],
+        primary: String,
+        mixing: [String] = []
+    ) -> StreamingTranscriptionSession? {
         guard LiveTranscription.isEnabled, TranscriptionEngine.selected.isReady else {
             tomLog("Live transcription: disabled (enabled=\(LiveTranscription.isEnabled), engine=\(TranscriptionEngine.selected.rawValue), modelReady=\(TranscriptionEngine.selected.isReady))")
             return nil
@@ -1471,7 +1708,7 @@ final class AppState: ObservableObject {
         if let meeting = meetings.first(where: { $0.id == meetingId }) {
             selectedMeeting = meeting
         }
-        let session = StreamingTranscriptionSession(sources: sources, primary: primary) { [weak self] update in
+        let session = StreamingTranscriptionSession(sources: sources, primary: primary, mixing: mixing) { [weak self] update in
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 for text in update.committed {
@@ -1524,6 +1761,11 @@ final class AppState: ObservableObject {
             try? FileManager.default.removeItem(at: fileURL)
             try? FileManager.default.removeItem(at: base.appendingPathExtension("m4a"))
             try? FileManager.default.removeItem(at: base.appendingPathExtension("mic.wav"))
+            try? FileManager.default.removeItem(at: base.appendingPathExtension("mic-muxed"))
+        }
+        if meeting.kind == .learning {
+            try? FileManager.default.removeItem(at: RecordingManager.recordingsDirectory
+                .appendingPathComponent(LearningSession.folderName(for: meeting.id), isDirectory: true))
         }
 
         // Delete from database
@@ -1632,6 +1874,146 @@ final class AppState: ObservableObject {
             trigger: nil
         )
         UNUserNotificationCenter.current().add(request)
+    }
+
+    /// False while recording, while an export of this meeting runs, and for
+    /// video when the recording has no video track.
+    func canExportMedia(_ meeting: Meeting, kind: AudioMuxer.ExportKind) -> Bool {
+        !meeting.recordingPath.isEmpty && meeting.state != .recording
+            && !exportingMeetingIDs.contains(meeting.id)
+            && (kind == .audio || meeting.hasVideo)
+    }
+
+    /// Asks for a destination, then writes the meeting's video (.mp4) or audio
+    /// (.m4a) there in the background. Mic and system audio are both included.
+    func exportMedia(_ meeting: Meeting, kind: AudioMuxer.ExportKind) {
+        guard canExportMedia(meeting, kind: kind) else { return }
+        let ext = kind == .video ? "mp4" : "m4a"
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [kind == .video ? .mpeg4Movie : .mpeg4Audio]
+        panel.nameFieldStringValue = meeting.exportFileName(ext: ext)
+        tomLog("User action: Export \(kind.rawValue) (meeting=\(meeting.id.uuidString.prefix(8)))")
+        guard panel.runModal() == .OK, let destination = panel.url else {
+            tomLog("Export \(kind.rawValue) cancelled")
+            return
+        }
+
+        let recording = RecordingManager.recordingsDirectory.appendingPathComponent(meeting.recordingPath)
+        let mic = Self.micSidecarURL(for: meeting, videoURL: recording)
+        let id = meeting.id
+        exportingMeetingIDs.insert(id)
+        Task.detached {
+            do {
+                try await AudioMuxer.exportMeetingMedia(recording: recording, mic: mic, kind: kind, to: destination)
+                tomLog("Export \(kind.rawValue) saved: \(destination.lastPathComponent)")
+            } catch {
+                tomLog("Export \(kind.rawValue) failed: \(error)")
+                await MainActor.run {
+                    let alert = NSAlert()
+                    alert.messageText = String(localized: "Export failed")
+                    alert.informativeText = error.localizedDescription
+                    alert.runModal()
+                }
+            }
+            await MainActor.run { _ = self.exportingMeetingIDs.remove(id) }
+        }
+    }
+
+    /// Asks for a folder name, then writes a Learning session's review for a
+    /// coding agent there: review.md, screens/, annotations.json.
+    func exportSpecFolder(_ meeting: Meeting) {
+        guard meeting.kind == .learning, !exportingMeetingIDs.contains(meeting.id) else { return }
+        let panel = NSSavePanel()
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = (meeting.exportFileName(ext: "md") as NSString).deletingPathExtension + " spec"
+        tomLog("User action: Export spec folder (meeting=\(meeting.id.uuidString.prefix(8)))")
+        guard panel.runModal() == .OK, let folder = panel.url else {
+            tomLog("Export spec folder cancelled")
+            return
+        }
+        let storage = storageManager
+        let id = meeting.id
+        exportingMeetingIDs.insert(id)
+        Task.detached {
+            let fm = FileManager.default
+            // Built next to the destination first, so a failed export never
+            // costs the folder being replaced.
+            let staging = folder.deletingLastPathComponent()
+                .appendingPathComponent(".tom-spec-\(UUID().uuidString)", isDirectory: true)
+            do {
+                let annotations = try storage.fetchAnnotations(meetingId: id)
+                let segments = try storage.fetchTranscriptSegments(meetingId: id)
+                try LearningReview.writeSpecFolder(
+                    to: staging, title: meeting.title, date: meeting.date,
+                    annotations: annotations, segments: segments,
+                    recordings: RecordingManager.recordingsDirectory
+                )
+                // The panel already confirmed "Replace"; trash rather than
+                // delete so a mistakenly picked folder can be recovered.
+                if fm.fileExists(atPath: folder.path) {
+                    try fm.trashItem(at: folder, resultingItemURL: nil)
+                }
+                try fm.moveItem(at: staging, to: folder)
+                tomLog("Export spec folder saved: \(folder.lastPathComponent) (\(annotations.count) annotations)")
+                await MainActor.run { NSWorkspace.shared.activateFileViewerSelecting([folder]) }
+            } catch {
+                try? fm.removeItem(at: staging)
+                tomLog("Export spec folder failed: \(error)")
+                await MainActor.run {
+                    let alert = NSAlert()
+                    alert.messageText = String(localized: "Export failed")
+                    alert.informativeText = error.localizedDescription
+                    alert.runModal()
+                }
+            }
+            await MainActor.run { _ = self.exportingMeetingIDs.remove(id) }
+        }
+    }
+
+    /// Copies a Feedback session for Claude or ChatGPT (review + annotated
+    /// screenshots as files) and opens a new chat there; ⌘V attaches it.
+    func sendToAI(_ meeting: Meeting, target: AIHandoff.Target) {
+        guard meeting.kind == .learning, !exportingMeetingIDs.contains(meeting.id) else { return }
+        tomLog("User action: Send to \(target.name) (meeting=\(meeting.id.uuidString.prefix(8)))")
+        let storage = storageManager
+        let id = meeting.id
+        exportingMeetingIDs.insert(id)
+        Task.detached {
+            do {
+                let folder = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("TOM Feedback", isDirectory: true)
+                    .appendingPathComponent(id.uuidString, isDirectory: true)
+                let package = try AIHandoff.build(
+                    title: meeting.title, date: meeting.date,
+                    annotations: try storage.fetchAnnotations(meetingId: id),
+                    segments: try storage.fetchTranscriptSegments(meetingId: id),
+                    recordings: RecordingManager.recordingsDirectory,
+                    target: target, into: folder
+                )
+                tomLog("Send to \(target.name): copied \(package.files.count) files (\(package.omittedImages) screenshots over the limit)")
+                await MainActor.run {
+                    AIHandoff.copy(package)
+                    AIHandoff.open(target)
+                    HandoffNotice.show(package, target: target)
+                }
+            } catch {
+                tomLog("Send to \(target.name) failed: \(error)")
+                await MainActor.run {
+                    let alert = NSAlert()
+                    alert.messageText = String(localized: "Export failed")
+                    alert.informativeText = error.localizedDescription
+                    alert.runModal()
+                }
+            }
+            await MainActor.run { _ = self.exportingMeetingIDs.remove(id) }
+        }
+    }
+
+    /// Sets a user-chosen meeting title that the AI won't overwrite. A blank
+    /// title hands the title back to the AI on the next (re)transcription.
+    func renameMeeting(id: UUID, title: String) {
+        tomLog("User action: rename meeting \(id.uuidString.prefix(8))")
+        updateMeeting(id: id) { $0.rename(to: title) }
     }
 
     /// Sets a display name for a raw speaker label in a single meeting. An empty

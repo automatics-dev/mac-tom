@@ -10,7 +10,7 @@ struct MeetingListSearchBar: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 11))
                 .foregroundColor(.subtleText)
-            TextField("Search meetings...", text: $appState.searchQuery)
+            TextField("Search recordings...", text: $appState.searchQuery)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12))
             Button { appState.searchQuery = "" } label: {

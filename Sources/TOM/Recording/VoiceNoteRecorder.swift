@@ -8,6 +8,8 @@ import Foundation
 final class VoiceNoteRecorder: @unchecked Sendable {
 
     private(set) var isRecording = false
+    /// While paused the tap drops buffers, so the note continues seamlessly.
+    var isPaused = false
 
     private var engine: AVAudioEngine?
     private var converter: AVAudioConverter?
@@ -42,8 +44,8 @@ final class VoiceNoteRecorder: @unchecked Sendable {
         let url = dir.appendingPathComponent("\(UUID().uuidString).wav")
 
         let engine = AVAudioEngine()
+        let inputFormat = MicInput.prepare(engine)
         let input = engine.inputNode
-        let inputFormat = input.outputFormat(forBus: 0)
 
         guard inputFormat.sampleRate > 0, inputFormat.channelCount > 0 else {
             throw VoiceNoteRecorderError.noInputDevice
@@ -81,8 +83,9 @@ final class VoiceNoteRecorder: @unchecked Sendable {
 
         let target = outputFormat
         streamConverter = streamingSession != nil ? StreamingFormatConverter(from: inputFormat) : nil
+        isPaused = false
         input.installTap(onBus: 0, bufferSize: 4096, format: inputFormat) { [weak self] buffer, _ in
-            guard let self else { return }
+            guard let self, !self.isPaused else { return }
             self.process(buffer: buffer, target: target)
             if let session = self.streamingSession, let converter = self.streamConverter {
                 let samples = converter.convert(buffer)
@@ -100,6 +103,7 @@ final class VoiceNoteRecorder: @unchecked Sendable {
             self.converter = nil
             self.file = nil
             self.outputURL = nil
+            try? FileManager.default.removeItem(at: url)
             throw error
         }
 
@@ -126,14 +130,14 @@ final class VoiceNoteRecorder: @unchecked Sendable {
         file = nil  // closes the AVAudioFile, flushing pending writes
         outputURL = nil
 
-        if let path = url?.path {
-            let size = (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? Int) ?? 0
-            if size <= 44 {
-                print("[TOM] Voice note empty (\(size) bytes), discarding.")
-                try? FileManager.default.removeItem(atPath: path)
+        if let url {
+            guard MicInput.hasSamples(url) else {
+                tomLog("Voice note empty, discarding.")
+                try? FileManager.default.removeItem(at: url)
                 return nil
             }
-            print("[TOM] Voice note saved: \(URL(fileURLWithPath: path).lastPathComponent) (\(size / 1024)KB)")
+            let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
+            print("[TOM] Voice note saved: \(url.lastPathComponent) (\(size / 1024)KB)")
         }
         return url
     }

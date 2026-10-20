@@ -10,7 +10,7 @@ struct SidebarSearchBar: View {
             Image(systemName: "sparkle.magnifyingglass")
                 .font(.system(size: 11))
                 .foregroundColor(.subtleText)
-            TextField("Ask across meetings...", text: $appState.ragQuery)
+            TextField("Ask across recordings...", text: $appState.ragQuery)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12))
                 .onSubmit {

@@ -142,39 +142,6 @@ struct SettingsView: View {
 
                 softwareUpdatesSection
 
-                Divider().padding(.vertical, 8)
-
-                sectionHeader("Screen Recording")
-
-                settingsRow {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Black video when recording Chrome or Arc?", systemImage: "exclamationmark.triangle")
-                            .font(.callout.weight(.medium))
-                            .foregroundStyle(.orange)
-
-                        Text("Chrome and Chromium-based browsers (Arc, Edge, Brave) use GPU-accelerated rendering that bypasses macOS screen capture. This affects all screen recorders, not just TOM.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        Text("To fix, disable hardware acceleration in your browser:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Chrome → Settings → System → Toggle OFF \"Use hardware acceleration when available\" → Relaunch")
-                                .font(.caption)
-                            Text("Arc → Settings → Advanced → Toggle OFF \"Use hardware acceleration\" → Relaunch")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 8)
-
-                        Text("Trade-off: slightly higher CPU usage during video playback.")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-
                 Divider()
 
                 advancedSection
@@ -241,24 +208,55 @@ struct SettingsView: View {
 
             if advancedExpanded {
                 VStack(alignment: .leading, spacing: 14) {
-                    Label("Custom prompts apply only to new meetings or when re-transcribing existing ones. They are not applied retroactively to your meeting history.", systemImage: "info.circle")
+                    Label("Custom prompts apply only to new recordings or when re-transcribing existing ones. They are not applied retroactively to your recording history.", systemImage: "info.circle")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.top, 4)
 
                     promptEditor(
                         title: "Summary prompt",
-                        description: "Leave empty to use the built-in default. Enter your own system prompt to override it. Available placeholders: {{kindNoun}} (meeting type), {{language}} (detected transcript language).",
+                        description: "Leave empty to use the built-in default. Enter your own system prompt to override it. Available placeholders: {{kindNoun}} (recording type), {{language}} (detected transcript language).",
                         promptName: "summary-system",
                         text: $summaryPromptDraft
                     )
 
                     promptEditor(
                         title: "Title prompt",
-                        description: "Leave empty to use the built-in default. Enter your own system prompt to override it. Available placeholders: {{kindNoun}} (meeting type), {{language}} (detected transcript language).",
+                        description: "Leave empty to use the built-in default. Enter your own system prompt to override it. Available placeholders: {{kindNoun}} (recording type), {{language}} (detected transcript language).",
                         promptName: "title-system",
                         text: $titlePromptDraft
                     )
+
+                    // Troubleshooting for an old capture problem; current
+                    // ScreenCaptureKit records Chromium browsers fine.
+                    settingsRow {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Black video when recording Chrome or Arc?", systemImage: "exclamationmark.triangle")
+                                .font(.callout.weight(.medium))
+                                .foregroundStyle(.orange)
+
+                            Text("Chrome and Chromium-based browsers (Arc, Edge, Brave) use GPU-accelerated rendering that bypasses macOS screen capture. This affects all screen recorders, not just TOM.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            Text("To fix, disable hardware acceleration in your browser:")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Chrome → Settings → System → Toggle OFF \"Use hardware acceleration when available\" → Relaunch")
+                                    .font(.caption)
+                                Text("Arc → Settings → Advanced → Toggle OFF \"Use hardware acceleration\" → Relaunch")
+                                    .font(.caption)
+                            }
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 8)
+
+                            Text("Trade-off: slightly higher CPU usage during video playback.")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
                 }
                 .padding(.bottom, 8)
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -415,7 +413,7 @@ struct SettingsView: View {
             let provider = cloudBrain.backend == .openai ? "OpenAI" : "Anthropic"
             return "Voice AI (on-device transcription) and Search AI (semantic embeddings) always run on-device. Think AI is currently routed to \(provider) — summaries, action points, and Ask answers go through that provider's API. Local Qwen is optional in this mode."
         }
-        return "All models run locally on Apple Silicon — your meetings never leave your Mac. You can optionally route Think AI to OpenAI's or Anthropic's most capable model below."
+        return "All models run locally on Apple Silicon — your recordings never leave your Mac. You can optionally route Think AI to OpenAI's or Anthropic's most capable model below."
     }
 
     /// Voice AI = transcription. Two on-device engines: Parakeet (real-time,
@@ -478,7 +476,7 @@ struct SettingsView: View {
                 }
             )) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Refine with Whisper after each meeting")
+                    Text("Refine with Whisper after each recording")
                         .font(.system(size: 13))
                     Text("Runs a full Whisper pass once recording stops, replacing the live transcript with the most accurate version. Needs the Whisper model downloaded.")
                         .font(.caption)
@@ -498,7 +496,7 @@ struct SettingsView: View {
     @ViewBuilder
     private var thinkAICard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Pick which model writes summaries, extracts action points, and answers cross-meeting questions. Voice AI and Search AI are unaffected.")
+            Text("Pick which model writes summaries, extracts action points, and answers questions across your recordings. Voice AI and Search AI are unaffected.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -845,7 +843,7 @@ struct SettingsView: View {
 
                 settingsRow {
                     HStack {
-                        Text("Meetings Stored").foregroundStyle(.primary)
+                        Text("Recordings Stored").foregroundStyle(.primary)
                         Spacer()
                         Text("\(appState.meetings.count)").foregroundStyle(.secondary)
                     }
@@ -1151,7 +1149,7 @@ struct UnifiedModelDownloadCard: View {
         } else if downloads.allReady {
             EmptyView()
         } else {
-            Text("Three models, downloaded once. Together they replace what cloud meeting apps do — on your Mac.")
+            Text("Three models, downloaded once. Together they replace what cloud transcription apps do — on your Mac.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -62,40 +62,14 @@ struct MeetingLibraryView: View {
         }
     }
 
-    /// Record control: red capsule + blinking dot + elapsed while recording,
-    /// otherwise the orange New Recording menu capsule. Same geometry both
-    /// ways so the control doesn't jump when recording starts.
+    /// Idle: Start Recording split capsule; while recording: the recording
+    /// bar. See RecordingControls.swift.
     @ViewBuilder
     private var recordingControl: some View {
         if appState.isRecording {
-            Button {
-                tomLog("User action: Stop Recording (toolbar)")
-                appState.stopRecording()
-            } label: {
-                TimelineView(.periodic(from: .now, by: 0.8)) { context in
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 6, height: 6)
-                            .opacity(Int(context.date.timeIntervalSinceReferenceDate / 0.8) % 2 == 0 ? 1 : 0.35)
-                        Text("Recording")
-                            .font(.system(size: 12, weight: .semibold))
-                        if let started = appState.recordingStartTime {
-                            Text(formatDuration(max(0, context.date.timeIntervalSince(started))))
-                                .font(.system(size: 12, weight: .medium, design: .monospaced))
-                                .opacity(0.9)
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 5)
-                    .background(Capsule().fill(Color.red.gradient))
-                }
-            }
-            .buttonStyle(.plain)
-            .help("Stop the current recording")
+            RecordingBar()
         } else {
-            newRecordingMenu
+            StartRecordingControl()
         }
     }
 
@@ -111,48 +85,6 @@ struct MeetingLibraryView: View {
         }
         .buttonStyle(.plain)
         .help(appState.showSettings ? "Close Settings" : "Settings")
-    }
-
-    /// Idle-state toolbar entry point: pops the three recording flows.
-    /// A Button + NSMenu rather than SwiftUI `Menu` — the macOS 26 toolbar
-    /// template-recolors Menu labels, which strips the capsule chrome.
-    private var newRecordingMenu: some View {
-        Button {
-            let menu = NSMenu()
-            menu.addItem(MeetingMenuItem("Record Screen or Window…", systemImage: "rectangle.inset.filled.badge.record") {
-                tomLog("User action: New Recording → Record Screen or Window… (toolbar)")
-                AppDelegate.shared?.showWindowPicker(appState: appState)
-            })
-            menu.addItem(MeetingMenuItem("Record Voice Note", systemImage: "mic") {
-                tomLog("User action: New Recording → Record Voice Note (toolbar)")
-                appState.startVoiceNote()
-            })
-            menu.addItem(MeetingMenuItem("Upload Recording…", systemImage: "square.and.arrow.down") {
-                tomLog("User action: New Recording → Upload Recording… (toolbar)")
-                AppDelegate.shared?.showImportPicker(appState: appState)
-            })
-            if let event = NSApp.currentEvent {
-                NSMenu.popUpContextMenu(menu, with: event, for: NSApp.keyWindow?.contentView ?? NSView())
-            }
-        } label: {
-            // Signature control: the one solid-color element in the toolbar.
-            // Single capsule layer — no tinted-box-inside-glass nesting.
-            HStack(spacing: 6) {
-                Image(systemName: "record.circle.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                Text("New Recording")
-                    .font(.system(size: 12, weight: .semibold))
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 5)
-            .background(Capsule().fill(Color.accent.gradient))
-        }
-        .buttonStyle(.plain)
-        .fixedSize()
-        .help(appState.recordingBlockedReason ?? "Record a meeting or voice note, or upload a file")
-        .disabled(!appState.canCreateMeetings)
-        .opacity(appState.canCreateMeetings ? 1 : 0.5)
     }
 
     /// Türetilmiş Binding köprüsü — NavigationSplitView(columnVisibility:) bunu tüketir.
@@ -289,7 +221,7 @@ private struct ToolbarRAGSearchField: View {
     private var placeholder: String {
         guard let gid = appState.selectedGroupId,
               let group = appState.groups.first(where: { $0.id == gid })
-        else { return "Ask across all meetings..." }
+        else { return "Ask across all recordings..." }
         return "Ask within \(group.name)..."
     }
 

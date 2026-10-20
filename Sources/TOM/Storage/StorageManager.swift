@@ -15,8 +15,7 @@ final class StorageManager: @unchecked Sendable {
 
     // MARK: - Init
 
-    init() {
-        let home = FileManager.default.homeDirectoryForCurrentUser
+    init(home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         dbDirectory = home.appendingPathComponent(".tom/data/db", isDirectory: true)
         recordingsDirectory = home.appendingPathComponent(".tom/data/recordings", isDirectory: true)
 
@@ -62,6 +61,7 @@ final class StorageManager: @unchecked Sendable {
                 group_id TEXT,
                 kind TEXT NOT NULL DEFAULT 'meeting',
                 speaker_aliases TEXT,
+                title_is_custom INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY (group_id) REFERENCES meeting_groups(id)
             );
             """,
@@ -88,7 +88,22 @@ final class StorageManager: @unchecked Sendable {
                 FOREIGN KEY (meeting_id) REFERENCES meetings(id)
             );
             """,
+            """
+            CREATE TABLE IF NOT EXISTS annotations (
+                id TEXT PRIMARY KEY,
+                meeting_id TEXT NOT NULL,
+                idx INTEGER NOT NULL,
+                is_marker INTEGER NOT NULL DEFAULT 0,
+                start_time REAL NOT NULL,
+                end_time REAL NOT NULL,
+                marks TEXT NOT NULL,
+                screenshot_path TEXT NOT NULL,
+                crop_path TEXT,
+                FOREIGN KEY (meeting_id) REFERENCES meetings(id)
+            );
+            """,
             "CREATE INDEX IF NOT EXISTS idx_transcript_segments_meeting_id ON transcript_segments(meeting_id);",
+            "CREATE INDEX IF NOT EXISTS idx_annotations_meeting_id ON annotations(meeting_id);",
             "CREATE INDEX IF NOT EXISTS idx_embeddings_meeting_id ON embeddings(meeting_id);"
         ]
 
@@ -111,6 +126,7 @@ final class StorageManager: @unchecked Sendable {
                 ("group_id",        "ALTER TABLE meetings ADD COLUMN group_id TEXT;"),
                 ("kind",            "ALTER TABLE meetings ADD COLUMN kind TEXT NOT NULL DEFAULT 'meeting';"),
                 ("speaker_aliases", "ALTER TABLE meetings ADD COLUMN speaker_aliases TEXT;"),
+                ("title_is_custom", "ALTER TABLE meetings ADD COLUMN title_is_custom INTEGER NOT NULL DEFAULT 0;"),
             ]
             // transcript_segments: word-level timings as JSON (karaoke sync).
             let segmentColumns = columnNames(table: "transcript_segments")
@@ -294,7 +310,8 @@ final class StorageManager: @unchecked Sendable {
             let sql = """
                 UPDATE meetings
                 SET title = ?, date = ?, duration = ?, recording_path = ?, transcript = ?,
-                    summary = ?, state = ?, group_id = ?, kind = ?, speaker_aliases = ?
+                    summary = ?, state = ?, group_id = ?, kind = ?, speaker_aliases = ?,
+                    title_is_custom = ?
                 WHERE id = ?;
             """
             try exec(sql) { stmt in
@@ -315,14 +332,15 @@ final class StorageManager: @unchecked Sendable {
                 } else {
                     sqlite3_bind_null(stmt, 10)
                 }
-                sqlite3_bind_text(stmt, 11, meeting.id.uuidString, -1, TRANSIENT)
+                sqlite3_bind_int(stmt, 11, meeting.titleIsCustom ? 1 : 0)
+                sqlite3_bind_text(stmt, 12, meeting.id.uuidString, -1, TRANSIENT)
             }
         }
     }
 
     func fetchAllMeetings() throws -> [Meeting] {
         try queue.sync {
-            let sql = "SELECT id, title, date, duration, recording_path, transcript, summary, state, group_id, kind, speaker_aliases FROM meetings ORDER BY date DESC;"
+            let sql = "SELECT id, title, date, duration, recording_path, transcript, summary, state, group_id, kind, speaker_aliases, title_is_custom FROM meetings ORDER BY date DESC;"
             var stmt: OpaquePointer?
             guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
                 throw StorageError.prepareFailed(String(cString: sqlite3_errmsg(db)))
@@ -341,7 +359,7 @@ final class StorageManager: @unchecked Sendable {
 
     func fetchMeeting(id: UUID) throws -> Meeting? {
         try queue.sync {
-            let sql = "SELECT id, title, date, duration, recording_path, transcript, summary, state, group_id, kind, speaker_aliases FROM meetings WHERE id = ?;"
+            let sql = "SELECT id, title, date, duration, recording_path, transcript, summary, state, group_id, kind, speaker_aliases, title_is_custom FROM meetings WHERE id = ?;"
             var stmt: OpaquePointer?
             guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
                 throw StorageError.prepareFailed(String(cString: sqlite3_errmsg(db)))
@@ -364,6 +382,9 @@ final class StorageManager: @unchecked Sendable {
                 sqlite3_bind_text(stmt, 1, id.uuidString, -1, TRANSIENT)
             }
             try exec("DELETE FROM embeddings WHERE meeting_id = ?;") { stmt in
+                sqlite3_bind_text(stmt, 1, id.uuidString, -1, TRANSIENT)
+            }
+            try exec("DELETE FROM annotations WHERE meeting_id = ?;") { stmt in
                 sqlite3_bind_text(stmt, 1, id.uuidString, -1, TRANSIENT)
             }
             try exec("DELETE FROM meetings WHERE id = ?;") { stmt in
@@ -439,6 +460,72 @@ final class StorageManager: @unchecked Sendable {
                 segments.append(TranscriptSegment(id: id, startTime: startTime, endTime: endTime, speaker: speaker, text: text, words: words))
             }
             return segments
+        }
+    }
+
+    // MARK: - Annotations (Learning sessions)
+
+    func saveAnnotation(_ annotation: Annotation) throws {
+        let marksJSON = String(data: try encoder.encode(annotation.marks), encoding: .utf8) ?? "[]"
+        try queue.sync {
+            let sql = """
+                INSERT OR REPLACE INTO annotations
+                (id, meeting_id, idx, is_marker, start_time, end_time, marks, screenshot_path, crop_path)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """
+            let TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+            try exec(sql) { stmt in
+                sqlite3_bind_text(stmt, 1, annotation.id.uuidString, -1, TRANSIENT)
+                sqlite3_bind_text(stmt, 2, annotation.meetingId.uuidString, -1, TRANSIENT)
+                sqlite3_bind_int(stmt, 3, Int32(annotation.index))
+                sqlite3_bind_int(stmt, 4, annotation.isMarker ? 1 : 0)
+                sqlite3_bind_double(stmt, 5, annotation.startTime)
+                sqlite3_bind_double(stmt, 6, annotation.endTime)
+                sqlite3_bind_text(stmt, 7, marksJSON, -1, TRANSIENT)
+                sqlite3_bind_text(stmt, 8, annotation.screenshotPath, -1, TRANSIENT)
+                if let crop = annotation.cropPath {
+                    sqlite3_bind_text(stmt, 9, crop, -1, TRANSIENT)
+                } else {
+                    sqlite3_bind_null(stmt, 9)
+                }
+            }
+        }
+    }
+
+    func fetchAnnotations(meetingId: UUID) throws -> [Annotation] {
+        try queue.sync {
+            let sql = """
+                SELECT id, idx, is_marker, start_time, end_time, marks, screenshot_path, crop_path
+                FROM annotations WHERE meeting_id = ? ORDER BY start_time;
+            """
+            var stmt: OpaquePointer?
+            guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+                throw StorageError.prepareFailed(String(cString: sqlite3_errmsg(db)))
+            }
+            defer { sqlite3_finalize(stmt) }
+
+            let TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+            sqlite3_bind_text(stmt, 1, meetingId.uuidString, -1, TRANSIENT)
+
+            var annotations: [Annotation] = []
+            while sqlite3_step(stmt) == SQLITE_ROW {
+                guard let idStr = columnText(stmt!, 0), let id = UUID(uuidString: idStr) else { continue }
+                let marks = columnText(stmt!, 5)
+                    .flatMap { $0.data(using: .utf8) }
+                    .flatMap { try? decoder.decode([AnnotationMark].self, from: $0) } ?? []
+                annotations.append(Annotation(
+                    id: id,
+                    meetingId: meetingId,
+                    index: Int(sqlite3_column_int(stmt, 1)),
+                    isMarker: sqlite3_column_int(stmt, 2) != 0,
+                    startTime: sqlite3_column_double(stmt, 3),
+                    endTime: sqlite3_column_double(stmt, 4),
+                    marks: marks,
+                    screenshotPath: columnText(stmt!, 6) ?? "",
+                    cropPath: columnText(stmt!, 7)
+                ))
+            }
+            return annotations
         }
     }
 
@@ -559,6 +646,7 @@ final class StorageManager: @unchecked Sendable {
            let decoded = try? JSONDecoder().decode([String: String].self, from: data) {
             speakerAliases = decoded
         }
+        let titleIsCustom = sqlite3_column_int(stmt, 11) != 0
 
         return Meeting(
             id: id,
@@ -571,7 +659,8 @@ final class StorageManager: @unchecked Sendable {
             state: state,
             groupId: groupId,
             kind: kind,
-            speakerAliases: speakerAliases
+            speakerAliases: speakerAliases,
+            titleIsCustom: titleIsCustom
         )
     }
 }

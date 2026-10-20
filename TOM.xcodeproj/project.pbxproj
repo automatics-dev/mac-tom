@@ -24,7 +24,6 @@
 		08FC66702FA35C3C00A1843C /* SidebarColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC664C2FA35C3C00A1843C /* SidebarColumn.swift */; };
 		08FC66712FA35C3C00A1843C /* RAGResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC66382FA35C3C00A1843C /* RAGResultView.swift */; };
 		08FC66722FA35C3C00A1843C /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC66482FA35C3C00A1843C /* Helpers.swift */; };
-		08FC66732FA35C3C00A1843C /* WindowPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC665F2FA35C3C00A1843C /* WindowPickerView.swift */; };
 		08FC66742FA35C3C00A1843C /* SidebarMeetingRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC664E2FA35C3C00A1843C /* SidebarMeetingRow.swift */; };
 		08FC66752FA35C3C00A1843C /* MeetingListColumn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC663E2FA35C3C00A1843C /* MeetingListColumn.swift */; };
 		08FC66762FA35C3C00A1843C /* TOMApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08FC66132FA35C3C00A1843C /* TOMApp.swift */; };
@@ -91,6 +90,18 @@
 		0A000AA12FA35C3C00A1843C /* MLXEmbedders in Frameworks */ = {isa = PBXBuildFile; productRef = 0A0006A12FA35C3C00A1843C /* MLXEmbedders */; };
 		0AFC66022FA35C3C00A1843C /* UpdaterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AFC66012FA35C3C00A1843C /* UpdaterController.swift */; };
 		0AFC11072FA35C3C00A1843C /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AFC11082FA35C3C00A1843C /* StatusItemController.swift */; };
+		239313E221BA75D2DD858F37 /* LearningReview.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC74CC16CB1FC2F5C7FA440 /* LearningReview.swift */; };
+		71DA2763A6D99EA82B0085EF /* GlobalHotKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDCE8F29957132C3E431408A /* GlobalHotKey.swift */; };
+		8300E1688D8F61FCB3E83D9C /* LearningSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D95F4B222CAB0AC9C2A8C013 /* LearningSession.swift */; };
+		4A83A929212A838D281F2950 /* ReviewTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D887D16FF31CC03C956E2C4F /* ReviewTab.swift */; };
+		D096D2D252EFD8B9812CCA59 /* LearningReviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7820E7C4E2673184B860A361 /* LearningReviewTests.swift */; };
+		0C9AAC8881A3ED8CCE51C805 /* AIHandoffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B43A0BA72B346DB6A92A0C1 /* AIHandoffTests.swift */; };
+		A28319F04564A82542F494AE /* VideoSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18536B7260637CCA603E770B /* VideoSettingsTests.swift */; };
+		CC26372B7A0A96EFDB935F0F /* MicInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551A2A1025CB40B5C31EA1D3 /* MicInput.swift */; };
+		1B2225A49D488007D3E526A4 /* RecordingSetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33274A8CE13B8B932F01875E /* RecordingSetup.swift */; };
+		1A98FA342D0CB559A1391650 /* AIHandoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A1017197DA692D15AAAE88 /* AIHandoff.swift */; };
+		919E8E0C42F3D552C6707A9C /* RecordingControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7713F046E44D7C76B240A07 /* RecordingControls.swift */; };
+		5BA39AE4F214ABA250738AA8 /* RecordPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F2CB147979D5DDA263940E8 /* RecordPanel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -171,12 +182,23 @@
 		08FC66592FA35C3C00A1843C /* PlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerManager.swift; sourceTree = "<group>"; };
 		08FC665B2FA35C3C00A1843C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		08FC665D2FA35C3C00A1843C /* MarkdownWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownWebView.swift; sourceTree = "<group>"; };
-		08FC665F2FA35C3C00A1843C /* WindowPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPickerView.swift; sourceTree = "<group>"; };
 		08FC66622FA35C3C00A1843C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		09FC66012FA35C3C00A1843C /* ProcessingQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingQueue.swift; sourceTree = "<group>"; };
 		09FC66102FA35C3C00A1843C /* chunk-extract-system.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "chunk-extract-system.md"; sourceTree = "<group>"; };
 		0AFC66012FA35C3C00A1843C /* UpdaterController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterController.swift; sourceTree = "<group>"; };
 		0AFC11082FA35C3C00A1843C /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
+		AAC74CC16CB1FC2F5C7FA440 /* LearningReview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningReview.swift; sourceTree = "<group>"; };
+		CDCE8F29957132C3E431408A /* GlobalHotKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalHotKey.swift; sourceTree = "<group>"; };
+		D95F4B222CAB0AC9C2A8C013 /* LearningSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningSession.swift; sourceTree = "<group>"; };
+		D887D16FF31CC03C956E2C4F /* ReviewTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewTab.swift; sourceTree = "<group>"; };
+		7820E7C4E2673184B860A361 /* LearningReviewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningReviewTests.swift; sourceTree = "<group>"; };
+		8B43A0BA72B346DB6A92A0C1 /* AIHandoffTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIHandoffTests.swift; sourceTree = "<group>"; };
+		18536B7260637CCA603E770B /* VideoSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoSettingsTests.swift; sourceTree = "<group>"; };
+		551A2A1025CB40B5C31EA1D3 /* MicInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicInput.swift; sourceTree = "<group>"; };
+		33274A8CE13B8B932F01875E /* RecordingSetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSetup.swift; sourceTree = "<group>"; };
+		F9A1017197DA692D15AAAE88 /* AIHandoff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIHandoff.swift; sourceTree = "<group>"; };
+		D7713F046E44D7C76B240A07 /* RecordingControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingControls.swift; sourceTree = "<group>"; };
+		3F2CB147979D5DDA263940E8 /* RecordPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordPanel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -217,6 +239,9 @@
 				0CFA12112FA35C3C00A1843C /* HallucinationFilterTests.swift */,
 				0CFA12122FA35C3C00A1843C /* SilenceGapFoldingTests.swift */,
 				0CFA12132FA35C3C00A1843C /* StreamingChunkTests.swift */,
+				7820E7C4E2673184B860A361 /* LearningReviewTests.swift */,
+				8B43A0BA72B346DB6A92A0C1 /* AIHandoffTests.swift */,
+				18536B7260637CCA603E770B /* VideoSettingsTests.swift */,
 				BF98D502716745EB5239ACA8 /* LivePreviewIntegrationTests.swift */,
 				0CFA12142FA35C3C00A1843C /* RAGStreamBufferTests.swift */,
 				0CFA12152FA35C3C00A1843C /* MarkdownHTMLTests.swift */,
@@ -255,6 +280,8 @@
 				08FC66132FA35C3C00A1843C /* TOMApp.swift */,
 				0AFC66012FA35C3C00A1843C /* UpdaterController.swift */,
 				0AFC11082FA35C3C00A1843C /* StatusItemController.swift */,
+				33274A8CE13B8B932F01875E /* RecordingSetup.swift */,
+				F9A1017197DA692D15AAAE88 /* AIHandoff.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -263,6 +290,10 @@
 			isa = PBXGroup;
 			children = (
 				08FC66172FA35C3C00A1843C /* AudioMuxer.swift */,
+				551A2A1025CB40B5C31EA1D3 /* MicInput.swift */,
+				D95F4B222CAB0AC9C2A8C013 /* LearningSession.swift */,
+				CDCE8F29957132C3E431408A /* GlobalHotKey.swift */,
+				AAC74CC16CB1FC2F5C7FA440 /* LearningReview.swift */,
 				08FC66182FA35C3C00A1843C /* MeetingDetector.swift */,
 				08FC66192FA35C3C00A1843C /* ProcessAudioMonitor.swift */,
 				08FC661A2FA35C3C00A1843C /* RecordingManager.swift */,
@@ -329,6 +360,7 @@
 				08FC66342FA35C3C00A1843C /* DetailTabControls.swift */,
 				08FC66352FA35C3C00A1843C /* DetailTranscriptContent.swift */,
 				08FC66362FA35C3C00A1843C /* ExportButtons.swift */,
+				D887D16FF31CC03C956E2C4F /* ReviewTab.swift */,
 				08FC66372FA35C3C00A1843C /* QuickViewTabButton.swift */,
 				08FC66382FA35C3C00A1843C /* RAGResultView.swift */,
 				08FC66392FA35C3C00A1843C /* SummaryTab.swift */,
@@ -395,6 +427,7 @@
 				08FC66512FA35C3C00A1843C /* Sidebar */,
 				08FC66522FA35C3C00A1843C /* MeetingDetailView.swift */,
 				08FC66532FA35C3C00A1843C /* MeetingLibraryView.swift */,
+				D7713F046E44D7C76B240A07 /* RecordingControls.swift */,
 			);
 			path = MeetingLibrary;
 			sourceTree = "<group>";
@@ -442,7 +475,7 @@
 		08FC66602FA35C3C00A1843C /* WindowPicker */ = {
 			isa = PBXGroup;
 			children = (
-				08FC665F2FA35C3C00A1843C /* WindowPickerView.swift */,
+				3F2CB147979D5DDA263940E8 /* RecordPanel.swift */,
 			);
 			path = WindowPicker;
 			sourceTree = "<group>";
@@ -635,12 +668,16 @@
 				08FC66702FA35C3C00A1843C /* SidebarColumn.swift in Sources */,
 				08FC66712FA35C3C00A1843C /* RAGResultView.swift in Sources */,
 				08FC66722FA35C3C00A1843C /* Helpers.swift in Sources */,
-				08FC66732FA35C3C00A1843C /* WindowPickerView.swift in Sources */,
 				08FC66742FA35C3C00A1843C /* SidebarMeetingRow.swift in Sources */,
 				08FC66752FA35C3C00A1843C /* MeetingListColumn.swift in Sources */,
 				08FC66762FA35C3C00A1843C /* TOMApp.swift in Sources */,
 				08FC66772FA35C3C00A1843C /* PlayerManager.swift in Sources */,
 				08FC66782FA35C3C00A1843C /* AudioMuxer.swift in Sources */,
+				5BA39AE4F214ABA250738AA8 /* RecordPanel.swift in Sources */,
+				CC26372B7A0A96EFDB935F0F /* MicInput.swift in Sources */,
+				8300E1688D8F61FCB3E83D9C /* LearningSession.swift in Sources */,
+				71DA2763A6D99EA82B0085EF /* GlobalHotKey.swift in Sources */,
+				239313E221BA75D2DD858F37 /* LearningReview.swift in Sources */,
 				08FC66792FA35C3C00A1843C /* PlayerVideoView.swift in Sources */,
 				08FC667A2FA35C3C00A1843C /* TomLogoView.swift in Sources */,
 				08FC667B2FA35C3C00A1843C /* SummaryTab.swift in Sources */,
@@ -671,13 +708,17 @@
 				08FC66922FA35C3C00A1843C /* VideoTab.swift in Sources */,
 				08FC66932FA35C3C00A1843C /* SidebarGroupRow.swift in Sources */,
 				08FC66942FA35C3C00A1843C /* MeetingLibraryView.swift in Sources */,
+				919E8E0C42F3D552C6707A9C /* RecordingControls.swift in Sources */,
 				08FC66952FA35C3C00A1843C /* DetailPlayerBar.swift in Sources */,
 				08FC66962FA35C3C00A1843C /* MeetingDetailView.swift in Sources */,
 				08FC66972FA35C3C00A1843C /* ExportButtons.swift in Sources */,
+				4A83A929212A838D281F2950 /* ReviewTab.swift in Sources */,
 				08FC66982FA35C3C00A1843C /* EditableSidebarGroupRow.swift in Sources */,
 				09FC66022FA35C3C00A1843C /* ProcessingQueue.swift in Sources */,
 				0AFC66022FA35C3C00A1843C /* UpdaterController.swift in Sources */,
 				0AFC11072FA35C3C00A1843C /* StatusItemController.swift in Sources */,
+				1B2225A49D488007D3E526A4 /* RecordingSetup.swift in Sources */,
+				1A98FA342D0CB559A1391650 /* AIHandoff.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -688,6 +729,9 @@
 				0CFA12012FA35C3C00A1843C /* HallucinationFilterTests.swift in Sources */,
 				0CFA12022FA35C3C00A1843C /* SilenceGapFoldingTests.swift in Sources */,
 				0CFA12032FA35C3C00A1843C /* StreamingChunkTests.swift in Sources */,
+				D096D2D252EFD8B9812CCA59 /* LearningReviewTests.swift in Sources */,
+				0C9AAC8881A3ED8CCE51C805 /* AIHandoffTests.swift in Sources */,
+				A28319F04564A82542F494AE /* VideoSettingsTests.swift in Sources */,
 				D0EB8F7B71035AD5617CD966 /* LivePreviewIntegrationTests.swift in Sources */,
 				0CFA12042FA35C3C00A1843C /* RAGStreamBufferTests.swift in Sources */,
 				0CFA12052FA35C3C00A1843C /* MarkdownHTMLTests.swift in Sources */,
@@ -830,7 +874,7 @@
 				CODE_SIGN_ENTITLEMENTS = TOM.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 282;
+				CURRENT_PROJECT_VERSION = 284;
 				DEVELOPMENT_TEAM = REPLACE-WITH-YOUR-APPLE-TEAM-ID;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -868,7 +912,7 @@
 				CODE_SIGN_ENTITLEMENTS = TOM.Release.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 282;
+				CURRENT_PROJECT_VERSION = 284;
 				DEVELOPMENT_TEAM = REPLACE-WITH-YOUR-APPLE-TEAM-ID;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -902,11 +946,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 284;
 				DEVELOPMENT_TEAM = REPLACE-WITH-YOUR-APPLE-TEAM-ID;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.24.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.meettom.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -920,11 +964,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 284;
 				DEVELOPMENT_TEAM = REPLACE-WITH-YOUR-APPLE-TEAM-ID;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.24.0;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.meettom.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

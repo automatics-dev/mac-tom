@@ -14,6 +14,36 @@ struct SidebarColumn: View {
     }
 
     var body: some View {
+        ScrollView {
+            sections
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .toolbar {
+            // Notes-style "New Group" button in the sidebar's title-bar band.
+            ToolbarItem(placement: .primaryAction) {
+                Button { showNewGroupDialog = true } label: {
+                    Image(systemName: "folder.badge.plus")
+                        .font(.system(size: 13))
+                }
+                .help("New Group")
+            }
+        }
+        .sheet(isPresented: $showNewGroupDialog) {
+            NewGroupDialog(name: $newGroupName) {
+                let name = newGroupName.trimmingCharacters(in: .whitespaces)
+                if !name.isEmpty { appState.createGroup(name: name) }
+                newGroupName = ""
+                showNewGroupDialog = false
+            } onCancel: {
+                newGroupName = ""
+                showNewGroupDialog = false
+            }
+        }
+    }
+
+    /// Recent + Groups; scrolls once there are more groups than fit.
+    private var sections: some View {
         VStack(alignment: .leading, spacing: 0) {
             // RECENT
             SidebarSectionHeader(title: "Recent")
@@ -39,7 +69,7 @@ struct SidebarColumn: View {
                 .padding(.bottom, 8)
 
             SidebarGroupRow(
-                name: "All Meetings",
+                name: "All Recordings",
                 icon: "tray.full",
                 count: appState.meetings.count,
                 color: .accent,
@@ -74,31 +104,9 @@ struct SidebarColumn: View {
                 )
             }
 
-            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .toolbar {
-            // Notes-style "New Group" button in the sidebar's title-bar band.
-            ToolbarItem(placement: .primaryAction) {
-                Button { showNewGroupDialog = true } label: {
-                    Image(systemName: "folder.badge.plus")
-                        .font(.system(size: 13))
-                }
-                .help("New Group")
-            }
-        }
-        .sheet(isPresented: $showNewGroupDialog) {
-            NewGroupDialog(name: $newGroupName) {
-                let name = newGroupName.trimmingCharacters(in: .whitespaces)
-                if !name.isEmpty { appState.createGroup(name: name) }
-                newGroupName = ""
-                showNewGroupDialog = false
-            } onCancel: {
-                newGroupName = ""
-                showNewGroupDialog = false
-            }
-        }
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

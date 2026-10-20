@@ -9,7 +9,7 @@ struct EmptyDetailPlaceholder: View {
                 .font(.system(size: 44, weight: .ultraLight))
                 .foregroundColor(.subtleText)
 
-            Text("Select a meeting to begin")
+            Text("Select a recording to begin")
                 .font(.system(size: 15))
                 .foregroundColor(.subtleText)
         }

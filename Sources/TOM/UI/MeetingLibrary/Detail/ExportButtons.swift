@@ -42,48 +42,9 @@ struct ExportButtons: View {
             .buttonStyle(.plain)
             .disabled(copyText.isEmpty)
 
-            Button {
-                exportMarkdown(liveMeeting)
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 11))
-                    Text("Export")
-                        .font(.system(size: 11))
-                }
-                .foregroundColor(.subtleText)
-            }
-            .buttonStyle(.plain)
+            ExportMenuButton(meeting: liveMeeting, fontSize: 11)
         }
         .padding(.trailing, 4)
-    }
-
-    private func exportMarkdown(_ meeting: Meeting) {
-        let dateStr = shortDateFormatter.string(from: meeting.date)
-        let dur = formatDuration(meeting.duration)
-        var md = "# \(meeting.title)\n**Date:** \(dateStr)  **Duration:** \(dur)\n\n"
-        if let summary = meeting.aliasedSummary, !summary.isEmpty {
-            md += "## Summary\n\(summary)\n\n"
-        }
-        if let transcript = meeting.aliasedTranscript, !transcript.isEmpty {
-            md += "## Transcript\n\(transcript)\n"
-        }
-
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.plainText]
-        let safeName = meeting.title.replacingOccurrences(of: "/", with: "-")
-        panel.nameFieldStringValue = "\(safeName)-\(dateStr).md"
-        tomLog("User action: Export markdown (meeting=\(meeting.id.uuidString.prefix(8)))")
-        if panel.runModal() == .OK, let url = panel.url {
-            do {
-                try md.write(to: url, atomically: true, encoding: .utf8)
-                tomLog("Export markdown saved: \(url.lastPathComponent) (\(md.count) chars)")
-            } catch {
-                tomLog("Export markdown failed: \(error)")
-            }
-        } else {
-            tomLog("Export markdown cancelled")
-        }
     }
 }
 
@@ -126,47 +87,100 @@ struct QuickViewExportButtons: View {
             .buttonStyle(.plain)
             .disabled(copyText.isEmpty)
 
-            Button {
-                exportMarkdown(liveMeeting)
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 11))
-                    Text("Export")
-                        .font(.system(size: 12))
-                }
-                .foregroundColor(.subtleText)
-            }
-            .buttonStyle(.plain)
+            ExportMenuButton(meeting: liveMeeting, fontSize: 12)
         }
         .padding(.trailing, 8)
     }
+}
 
-    private func exportMarkdown(_ meeting: Meeting) {
-        let dateStr = shortDateFormatter.string(from: meeting.date)
-        let dur = formatDuration(meeting.duration)
-        var md = "# \(meeting.title)\n**Date:** \(dateStr)  **Duration:** \(dur)\n\n"
-        if let summary = meeting.aliasedSummary, !summary.isEmpty {
-            md += "## Summary\n\(summary)\n\n"
-        }
-        if let transcript = meeting.aliasedTranscript, !transcript.isEmpty {
-            md += "## Transcript\n\(transcript)\n"
-        }
+// MARK: - Export Menu
 
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.plainText]
-        let safeName = meeting.title.replacingOccurrences(of: "/", with: "-")
-        panel.nameFieldStringValue = "\(safeName)-\(dateStr).md"
-        tomLog("User action: Export markdown (meeting=\(meeting.id.uuidString.prefix(8)))")
-        if panel.runModal() == .OK, let url = panel.url {
-            do {
-                try md.write(to: url, atomically: true, encoding: .utf8)
-                tomLog("Export markdown saved: \(url.lastPathComponent) (\(md.count) chars)")
-            } catch {
-                tomLog("Export markdown failed: \(error)")
+/// "Export" button that pops Markdown / Video / Audio. NSMenu rather than a
+/// SwiftUI `Menu` so the plain label keeps its styling (see `MeetingMenuItem`).
+struct ExportMenuButton: View {
+    let meeting: Meeting
+    let fontSize: CGFloat
+    @EnvironmentObject var appState: AppState
+
+    var body: some View {
+        let exporting = appState.exportingMeetingIDs.contains(meeting.id)
+        Button {
+            let menu = NSMenu()
+            menu.autoenablesItems = false
+            for item in exportMenuItems(for: meeting, appState: appState) {
+                menu.addItem(item)
             }
-        } else {
-            tomLog("Export markdown cancelled")
+            if let event = NSApp.currentEvent {
+                NSMenu.popUpContextMenu(menu, with: event, for: NSApp.keyWindow?.contentView ?? NSView())
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 11))
+                Text(exporting ? "Exporting…" : "Export")
+                    .font(.system(size: fontSize))
+            }
+            .foregroundColor(.subtleText)
         }
+        .buttonStyle(.plain)
+    }
+}
+
+/// Send to Claude / ChatGPT (Feedback), Spec Folder, Markdown / Video / Audio entries shared by the detail Export button and
+/// the meeting card menu. The owning menu needs `autoenablesItems = false`.
+@MainActor
+func exportMenuItems(for meeting: Meeting, appState: AppState) -> [NSMenuItem] {
+    let markdown = MeetingMenuItem(String(localized: "Markdown"), systemImage: "doc.text") {
+        exportMarkdown(meeting)
+    }
+    let video = MeetingMenuItem(String(localized: "Video (.mp4)"), systemImage: "film") {
+        appState.exportMedia(meeting, kind: .video)
+    }
+    video.isEnabled = appState.canExportMedia(meeting, kind: .video)
+    let audio = MeetingMenuItem(String(localized: "Audio (.m4a)"), systemImage: "waveform") {
+        appState.exportMedia(meeting, kind: .audio)
+    }
+    audio.isEnabled = appState.canExportMedia(meeting, kind: .audio)
+    guard meeting.kind == .learning else { return [markdown, video, audio] }
+    let ready = meeting.state == .completed && !appState.exportingMeetingIDs.contains(meeting.id)
+    let assistants = AIHandoff.Target.allCases.map { target in
+        let item = MeetingMenuItem(String(localized: "Send to \(target.name)"), systemImage: "sparkles") {
+            appState.sendToAI(meeting, target: target)
+        }
+        item.isEnabled = ready
+        return item
+    }
+    let spec = MeetingMenuItem(String(localized: "Spec Folder…"), systemImage: "folder") {
+        appState.exportSpecFolder(meeting)
+    }
+    spec.isEnabled = ready
+    return assistants + [.separator(), spec, markdown, video, audio]
+}
+
+@MainActor
+func exportMarkdown(_ meeting: Meeting) {
+    let dateStr = shortDateFormatter.string(from: meeting.date)
+    let dur = formatDuration(meeting.duration)
+    var md = "# \(meeting.title)\n**Date:** \(dateStr)  **Duration:** \(dur)\n\n"
+    if let summary = meeting.aliasedSummary, !summary.isEmpty {
+        md += "## Summary\n\(summary)\n\n"
+    }
+    if let transcript = meeting.aliasedTranscript, !transcript.isEmpty {
+        md += "## Transcript\n\(transcript)\n"
+    }
+
+    let panel = NSSavePanel()
+    panel.allowedContentTypes = [.plainText]
+    panel.nameFieldStringValue = meeting.exportFileName(ext: "md")
+    tomLog("User action: Export markdown (meeting=\(meeting.id.uuidString.prefix(8)))")
+    if panel.runModal() == .OK, let url = panel.url {
+        do {
+            try md.write(to: url, atomically: true, encoding: .utf8)
+            tomLog("Export markdown saved: \(url.lastPathComponent) (\(md.count) chars)")
+        } catch {
+            tomLog("Export markdown failed: \(error)")
+        }
+    } else {
+        tomLog("Export markdown cancelled")
     }
 }

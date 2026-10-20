@@ -84,7 +84,7 @@ struct OnboardingView: View {
             Text("Welcome to TOM")
                 .font(.system(size: 22, weight: .bold))
 
-            Text("Private meeting intelligence that runs entirely on your Mac")
+            Text("Record, transcribe and search, privately on your Mac")
                 .font(.system(size: 14))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -125,7 +125,7 @@ struct OnboardingView: View {
             Text("Grant Permissions")
                 .font(.system(size: 22, weight: .bold))
 
-            Text("TOM needs two permissions to record meetings")
+            Text("TOM needs two permissions to record")
                 .font(.system(size: 14))
                 .foregroundColor(.secondary)
 
@@ -133,7 +133,7 @@ struct OnboardingView: View {
                 permissionRow(
                     icon: "rectangle.inset.filled.and.person.filled",
                     title: "Screen Recording",
-                    description: "Capture meeting windows",
+                    description: "Capture windows and screens",
                     granted: screenRecordingGranted,
                     action: {
                         tomLog("User action: Grant Screen Recording (opens System Settings)")
@@ -238,7 +238,7 @@ struct OnboardingView: View {
 
             VStack(spacing: 8) {
                 instructionRow(icon: "menubar.rectangle", text: "Click the TOM icon in your menu bar to start")
-                instructionRow(icon: "record.circle", text: "Select \"Record a Window\" to capture a meeting")
+                instructionRow(icon: "record.circle", text: "Choose Start Recording for a meeting, voice note or feedback session")
                 instructionRow(icon: "lock.shield.fill", text: "Recordings, transcripts, and summaries stay 100% local")
             }
             .padding(.horizontal, 32)

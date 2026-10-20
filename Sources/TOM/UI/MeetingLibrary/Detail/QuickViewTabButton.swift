@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Quick View Tab
 
 enum QuickViewTab {
-    case summary, transcript, video
+    case summary, transcript, video, review
 }
 
 // MARK: - Quick View Tab Button

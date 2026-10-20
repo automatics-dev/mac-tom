@@ -15,7 +15,11 @@ struct TranscriptTabContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if !playerManager.segments.isEmpty {
+            if !playerManager.segments.isEmpty && meeting.kind == .learning {
+                ContinuousTranscript(segments: playerManager.segments, currentIndex: playerManager.currentSegmentIndex)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 20)
+            } else if !playerManager.segments.isEmpty {
                 LazyVStack(alignment: .leading, spacing: 12) {
                     ForEach(Array(playerManager.segments.enumerated()), id: \.element.id) { idx, segment in
                         TranscriptSegmentRow(
@@ -72,6 +76,42 @@ struct TranscriptTabContent: View {
 
             Spacer(minLength: 20)
         }
+    }
+}
+
+/// A single-speaker transcript (Feedback sessions are only ever the person
+/// narrating) as running text rather than one "Me" row per segment. A pause
+/// starts a new paragraph; the segment being played is highlighted.
+struct ContinuousTranscript: View {
+    let segments: [TranscriptSegment]
+    let currentIndex: Int?
+
+    /// Silence between segments that starts a new paragraph.
+    static let paragraphGap: TimeInterval = 3
+
+    var body: some View {
+        Text(Self.attributed(segments, currentIndex: currentIndex))
+            .font(.system(size: 14))
+            .lineSpacing(5)
+            .textSelection(.enabled)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    static func attributed(_ segments: [TranscriptSegment], currentIndex: Int?) -> AttributedString {
+        var result = AttributedString()
+        var previousEnd: TimeInterval?
+        for (index, segment) in segments.enumerated() {
+            let text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { continue }
+            if let end = previousEnd {
+                result += AttributedString(segment.startTime - end >= paragraphGap ? "\n\n" : " ")
+            }
+            var part = AttributedString(text)
+            part.foregroundColor = index == currentIndex ? .primary : .dimText
+            result += part
+            previousEnd = segment.endTime
+        }
+        return result
     }
 }
 

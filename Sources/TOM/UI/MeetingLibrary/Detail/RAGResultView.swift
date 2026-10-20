@@ -120,7 +120,7 @@ private struct ThinkingIndicator: View {
     private var statusText: String {
         switch stage {
         case .idle: return ""
-        case .searching: return String(localized: "Looking across your meetings…")
+        case .searching: return String(localized: "Looking across your recordings…")
         case .synthesizing: return String(localized: "Reading and writing the answer…")
         }
     }

@@ -86,21 +86,28 @@ enum AudioMuxer {
             return
         }
 
-        let sysAudioURL: URL
-        let cleanupSysAudio: Bool
-        if let pre = preExtractedSysAudio, FileManager.default.fileExists(atPath: pre.path) {
-            sysAudioURL = pre
-            cleanupSysAudio = false
-        } else {
-            sysAudioURL = dir.appendingPathComponent("\(stem).sys.m4a")
-            try? FileManager.default.removeItem(at: sysAudioURL)
-            try await exportAudioOnly(from: videoURL, to: sysAudioURL)
-            cleanupSysAudio = true
-        }
-
         let mixedAudioURL = dir.appendingPathComponent("\(stem).mixed.m4a")
         try? FileManager.default.removeItem(at: mixedAudioURL)
-        try mixAudioOffline(sysAudioURL: sysAudioURL, micURL: micURL, outputURL: mixedAudioURL)
+
+        // Recorded with system audio off (Learning sessions): the mic is the
+        // only audio there is.
+        let hasSystemAudio = !(try await AVURLAsset(url: videoURL).loadTracks(withMediaType: .audio).isEmpty)
+        var sysAudioURL: URL?
+        var cleanupSysAudio = false
+        if !hasSystemAudio {
+            try await exportAudioOnly(from: micURL, to: mixedAudioURL)
+        } else if let pre = preExtractedSysAudio, FileManager.default.fileExists(atPath: pre.path) {
+            sysAudioURL = pre
+        } else {
+            let extracted = dir.appendingPathComponent("\(stem).sys.m4a")
+            try? FileManager.default.removeItem(at: extracted)
+            try await exportAudioOnly(from: videoURL, to: extracted)
+            sysAudioURL = extracted
+            cleanupSysAudio = true
+        }
+        if let sysAudioURL {
+            try mixAudioOffline(sysAudioURL: sysAudioURL, micURL: micURL, outputURL: mixedAudioURL)
+        }
 
         let mixedVideoURL = dir.appendingPathComponent("\(stem).mixed.mp4")
         try? FileManager.default.removeItem(at: mixedVideoURL)
@@ -108,12 +115,73 @@ enum AudioMuxer {
 
         _ = try FileManager.default.replaceItemAt(videoURL, withItemAt: mixedVideoURL)
 
-        if cleanupSysAudio {
+        if cleanupSysAudio, let sysAudioURL {
             try? FileManager.default.removeItem(at: sysAudioURL)
         }
         try? FileManager.default.removeItem(at: mixedAudioURL)
         FileManager.default.createFile(atPath: markerURL.path, contents: nil)
         print("[TOM] muxMicIntoVideo: mic mixed into \(videoURL.lastPathComponent)")
+    }
+
+    // MARK: - User Export
+
+    enum ExportKind: String {
+        case video, audio
+    }
+
+    /// Writes a meeting's media to `destination` for the user. Both sides of
+    /// the conversation are always included: an already-muxed recording is
+    /// copied (video) or has its audio extracted, otherwise the `.mic.wav`
+    /// sidecar is mixed in on the fly without touching the stored recording.
+    static func exportMeetingMedia(
+        recording: URL,
+        mic: URL?,
+        kind: ExportKind,
+        to destination: URL
+    ) async throws {
+        let stem = recording.deletingPathExtension().lastPathComponent
+        let marker = recording.deletingLastPathComponent().appendingPathComponent("\(stem).mic-muxed")
+        let pendingMic = FileManager.default.fileExists(atPath: marker.path) ? nil : mic
+        let isM4A = recording.pathExtension.lowercased() == "m4a"
+
+        let work = FileManager.default.temporaryDirectory
+            .appendingPathComponent("tom-export-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: work) }
+        // Exports land in `work` first so a failure never leaves a partial
+        // file at the user's chosen location.
+        let staged = work.appendingPathComponent("export.\(kind == .video ? "mp4" : "m4a")")
+
+        if let pendingMic {
+            let mixed = try await mixedAudio(recording: recording, mic: pendingMic, in: work)
+            if kind == .video {
+                try await muxVideoAndAudio(videoURL: recording, audioURL: mixed, outputURL: staged)
+            } else {
+                try FileManager.default.moveItem(at: mixed, to: staged)
+            }
+        } else if kind == .video || isM4A {
+            try FileManager.default.copyItem(at: recording, to: staged)
+        } else {
+            try await exportAudioOnly(from: recording, to: staged)
+        }
+
+        try? FileManager.default.removeItem(at: destination)
+        try FileManager.default.moveItem(at: staged, to: destination)
+    }
+
+    /// Recording audio + mic mixed into one AAC m4a inside `dir`. A recording
+    /// without an audio track (system audio off) yields the mic alone.
+    private static func mixedAudio(recording: URL, mic: URL, in dir: URL) async throws -> URL {
+        let output = dir.appendingPathComponent("mixed.m4a")
+        let hasRecordingAudio = !(try await AVURLAsset(url: recording).loadTracks(withMediaType: .audio).isEmpty)
+        guard hasRecordingAudio else {
+            try await exportAudioOnly(from: mic, to: output)
+            return output
+        }
+        let sysAudio = dir.appendingPathComponent("sys.m4a")
+        try await exportAudioOnly(from: recording, to: sysAudio)
+        try mixAudioOffline(sysAudioURL: sysAudio, micURL: mic, outputURL: output)
+        return output
     }
 
     // MARK: - Internals
@@ -281,9 +349,12 @@ enum AudioMuxer {
         guard let videoTrack = videoTracks.first, let audioTrack = audioTracks.first else {
             throw AudioMuxerError.missingTracks
         }
-        let videoDuration = try await videoAsset.load(.duration)
-        let audioDuration = try await audioAsset.load(.duration)
-        let usableAudio = CMTimeMinimum(videoDuration, audioDuration)
+        // Each track at its own length. ScreenCaptureKit sends no frames
+        // while the screen is static, so the video can end well before the
+        // audio; the player holds the last frame instead of the narration
+        // being cut off.
+        let videoDuration = try await videoTrack.load(.timeRange).duration
+        let audioDuration = try await audioTrack.load(.timeRange).duration
 
         let composition = AVMutableComposition()
         let videoCompTrack = composition.addMutableTrack(
@@ -299,7 +370,7 @@ enum AudioMuxer {
             of: videoTrack, at: .zero
         )
         try audioCompTrack?.insertTimeRange(
-            CMTimeRange(start: .zero, duration: usableAudio),
+            CMTimeRange(start: .zero, duration: audioDuration),
             of: audioTrack, at: .zero
         )
 

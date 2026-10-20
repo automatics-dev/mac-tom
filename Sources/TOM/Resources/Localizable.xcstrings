@@ -29,6 +29,34 @@
         }
       }
     },
+    "\"Recording Ready\"": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme bereit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grabación lista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrement prêt"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrazione pronta"
+          }
+        }
+      }
+    },
     "%@ meeting detected": {
       "localizations": {
         "de": {
@@ -281,30 +309,58 @@
         }
       }
     },
-    "%lld meetings": {
+    "%lld recordings": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld Meetings"
+            "value": "%lld Aufnahmen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld reuniones"
+            "value": "%lld grabaciones"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld réunions"
+            "value": "%lld enregistrements"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld riunioni"
+            "value": "%lld registrazioni"
+          }
+        }
+      }
+    },
+    "%lld screenshots didn't fit the file limit; use Export ▸ Spec Folder for all of them.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Screenshots passten nicht ins Dateilimit; nutze Exportieren ▸ Spezifikationsordner für alle."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld capturas no cabían en el límite de archivos; usa Exportar ▸ Carpeta de especificación para tenerlas todas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld captures dépassent la limite de fichiers ; utilise Exporter ▸ Dossier de spécification pour toutes les avoir."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld screenshot superano il limite di file; usa Esporta ▸ Cartella specifiche per averli tutti."
           }
         }
       }
@@ -533,6 +589,174 @@
         }
       }
     },
+    "All sound playing on this Mac": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Töne auf diesem Mac"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo el sonido de este Mac"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout le son de ce Mac"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutto l’audio di questo Mac"
+          }
+        }
+      }
+    },
+    "Annotate": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anotar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annoter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annota"
+          }
+        }
+      }
+    },
+    "Annotate (⌥A)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotieren (⌥A)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anotar (⌥A)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annoter (⌥A)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annota (⌥A)"
+          }
+        }
+      }
+    },
+    "Annotation %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotation %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anotación %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotation %lld"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotazione %lld"
+          }
+        }
+      }
+    },
+    "Annotation hotkeys": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotations-Kurzbefehle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajos de anotación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raccourcis d’annotation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scorciatoie di annotazione"
+          }
+        }
+      }
+    },
+    "Annotations saved": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Annotationen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anotaciones guardadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotations enregistrées"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotazioni salvate"
+          }
+        }
+      }
+    },
     "App": {
       "localizations": {
         "de": {
@@ -589,30 +813,58 @@
         }
       }
     },
-    "Ask across meetings...": {
+    "Ask across recordings...": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Über alle Meetings hinweg fragen..."
+            "value": "Über alle Aufnahmen hinweg fragen..."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pregunta en todas tus reuniones..."
+            "value": "Pregunta en todas tus grabaciones..."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interroger toutes vos réunions..."
+            "value": "Interroger tous vos enregistrements..."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fai domande su tutte le riunioni..."
+            "value": "Fai domande su tutte le registrazioni..."
+          }
+        }
+      }
+    },
+    "Audio (.m4a)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio (.m4a)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio (.m4a)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio (.m4a)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio (.m4a)"
           }
         }
       }
@@ -897,6 +1149,34 @@
         }
       }
     },
+    "Choose what and how to record (⌘⇧R)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen, was und wie aufgenommen wird (⌘⇧R)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige qué y cómo grabar (⌘⇧R)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir quoi et comment enregistrer (⌘⇧R)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli cosa e come registrare (⌘⇧R)"
+          }
+        }
+      }
+    },
     "Choose what to record": {
       "localizations": {
         "de": {
@@ -1093,6 +1373,62 @@
         }
       }
     },
+    "Copied the review": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisión copiada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revue copiée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisione copiata"
+          }
+        }
+      }
+    },
+    "Copied the review and %lld screenshots": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review und %lld Screenshots kopiert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisión y %lld capturas copiadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revue et %lld captures copiées"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisione e %lld screenshot copiati"
+          }
+        }
+      }
+    },
     "Copied!": {
       "localizations": {
         "de": {
@@ -1117,6 +1453,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copiato!"
+          }
+        }
+      }
+    },
+    "Copies the review, screenshots and transcript; paste with ⌘V.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopiert Review, Screenshots und Transkript; mit ⌘V einfügen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia la revisión, las capturas y la transcripción; pega con ⌘V."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copie la revue, les captures et la transcription ; colle avec ⌘V."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia revisione, screenshot e trascrizione; incolla con ⌘V."
           }
         }
       }
@@ -1177,30 +1541,30 @@
         }
       }
     },
-    "Custom prompts apply only to new meetings or when re-transcribing existing ones. They are not applied retroactively to your meeting history.": {
+    "Custom prompts apply only to new recordings or when re-transcribing existing ones. They are not applied retroactively to your recording history.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eigene Prompts gelten nur für neue Meetings oder beim erneuten Transkribieren bestehender Meetings. Sie werden nicht rückwirkend auf den Meeting-Verlauf angewendet."
+            "value": "Eigene Prompts gelten nur für neue Aufnahmen oder beim erneuten Transkribieren bestehender Aufnahmen. Sie werden nicht rückwirkend auf frühere Aufnahmen angewendet."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las instrucciones personalizadas solo se aplican a las reuniones nuevas o al volver a transcribir las existentes. No se aplican retroactivamente a tu historial de reuniones."
+            "value": "Las instrucciones personalizadas solo se aplican a las grabaciones nuevas o al volver a transcribir las existentes. No se aplican retroactivamente a tu historial de grabaciones."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les prompts personnalisés ne s'appliquent qu'aux nouvelles réunions ou lors de la retranscription de réunions existantes. Ils ne sont pas appliqués rétroactivement à votre historique de réunions."
+            "value": "Les prompts personnalisés ne s'appliquent qu'aux nouveaux enregistrements ou lors de la retranscription d'enregistrements existants. Ils ne sont pas appliqués rétroactivement à votre historique d'enregistrements."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "I prompt personalizzati si applicano solo alle nuove riunioni o quando si ritrascrivono quelle esistenti. Non vengono applicati retroattivamente alla cronologia delle riunioni."
+            "value": "I prompt personalizzati si applicano solo alle nuove registrazioni o quando si ritrascrivono quelle esistenti. Non vengono applicati retroattivamente alla cronologia delle registrazioni."
           }
         }
       }
@@ -1341,6 +1705,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Log diagnostico"
+          }
+        }
+      }
+    },
+    "Discard this annotation (Esc)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Annotation verwerfen (Esc)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar esta anotación (Esc)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorer cette annotation (Échap)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scarta questa annotazione (Esc)"
           }
         }
       }
@@ -1625,6 +2017,62 @@
         }
       }
     },
+    "Export failed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export fehlgeschlagen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error al exportar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de l’exportation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esportazione non riuscita"
+          }
+        }
+      }
+    },
+    "Exporting…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird exportiert…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportando…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportation…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esportazione…"
+          }
+        }
+      }
+    },
     "Failed": {
       "localizations": {
         "de": {
@@ -1653,6 +2101,118 @@
         }
       }
     },
+    "Feedback": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retours"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback"
+          }
+        }
+      }
+    },
+    "Finish": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fertig"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine"
+          }
+        }
+      }
+    },
+    "Finish annotation (⌥A)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annotation abschließen (⌥A)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminar anotación (⌥A)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminer l’annotation (⌥A)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termina annotazione (⌥A)"
+          }
+        }
+      }
+    },
+    "Finishing the previous recording…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorherige Aufnahme wird abgeschlossen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finalizando la grabación anterior…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finalisation de l’enregistrement précédent…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completamento della registrazione precedente…"
+          }
+        }
+      }
+    },
     "First question after a quiet stretch loads the model — takes about 10 seconds.": {
       "localizations": {
         "de": {
@@ -1677,6 +2237,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "La prima domanda dopo un periodo di inattività carica il modello — richiede circa 10 secondi."
+          }
+        }
+      }
+    },
+    "Full Screen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollbild"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla completa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plein écran"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schermo intero"
           }
         }
       }
@@ -1877,6 +2465,62 @@
         }
       }
     },
+    "Include System Audio": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemaudio einbeziehen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir audio del sistema"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inclure l’audio du système"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Includi audio di sistema"
+          }
+        }
+      }
+    },
+    "Label last mark": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markierung beschriften"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiquetar última marca"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Légender la marque"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etichetta ultimo segno"
+          }
+        }
+      }
+    },
     "Live transcript": {
       "localizations": {
         "de": {
@@ -1905,30 +2549,170 @@
         }
       }
     },
-    "Looking across your meetings…": {
+    "Looking across your recordings…": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meetings werden durchsucht…"
+            "value": "Aufnahmen werden durchsucht…"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buscando en tus reuniones…"
+            "value": "Buscando en tus grabaciones…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recherche dans vos réunions…"
+            "value": "Recherche dans vos enregistrements…"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ricerca tra le tue riunioni…"
+            "value": "Ricerca tra le tue registrazioni…"
+          }
+        }
+      }
+    },
+    "Mark": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marquer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segna"
+          }
+        }
+      }
+    },
+    "Mark this moment (⌥M)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Moment markieren (⌥M)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar este momento (⌥M)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marquer ce moment (⌥M)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segna questo momento (⌥M)"
+          }
+        }
+      }
+    },
+    "Markdown": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown"
+          }
+        }
+      }
+    },
+    "Marker %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marker %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marqueur %lld"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segnaposto %lld"
+          }
+        }
+      }
+    },
+    "Meeting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reunión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réunion"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riunione"
           }
         }
       }
@@ -1961,30 +2745,58 @@
         }
       }
     },
-    "Meetings Stored": {
+    "Microphone": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gespeicherte Meetings"
+            "value": "Mikrofon"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reuniones almacenadas"
+            "value": "Micrófono"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Réunions stockées"
+            "value": "Microphone"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Riunioni archiviate"
+            "value": "Microfono"
+          }
+        }
+      }
+    },
+    "Microphone access is off": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofonzugriff ist deaktiviert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El acceso al micrófono está desactivado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accès au micro est désactivé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accesso al microfono è disattivato"
           }
         }
       }
@@ -2013,6 +2825,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "I modelli sono ancora in download in background. Puoi registrare subito — trascrizione e riepiloghi verranno eseguiti non appena il rispettivo modello sarà pronto."
+          }
+        }
+      }
+    },
+    "Mute Microphone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon stummschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silenciar micrófono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couper le micro"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattiva microfono"
+          }
+        }
+      }
+    },
+    "Mute microphone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon stummschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silenciar micrófono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couper le micro"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattiva microfono"
           }
         }
       }
@@ -2157,58 +3025,114 @@
         }
       }
     },
-    "No meetings match your search": {
+    "No annotations in this session. Press ⌥A while recording to annotate the screen.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Meetings entsprechen der Suche"
+            "value": "Keine Annotationen in dieser Sitzung. Drücke während der Aufnahme ⌥A, um den Bildschirm zu annotieren."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ninguna reunión coincide con tu búsqueda"
+            "value": "No hay anotaciones en esta sesión. Pulsa ⌥A mientras grabas para anotar la pantalla."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune réunion ne correspond à votre recherche"
+            "value": "Aucune annotation dans cette session. Appuyez sur ⌥A pendant l’enregistrement pour annoter l’écran."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nessuna riunione corrisponde alla ricerca"
+            "value": "Nessuna annotazione in questa sessione. Premi ⌥A durante la registrazione per annotare lo schermo."
           }
         }
       }
     },
-    "No relevant meeting content found for this question.": {
+    "No displays available": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Für diese Frage wurden keine relevanten Meeting-Inhalte gefunden."
+            "value": "Keine Bildschirme verfügbar"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se ha encontrado contenido de reuniones relevante para esta pregunta."
+            "value": "No hay pantallas disponibles"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucun contenu de réunion pertinent trouvé pour cette question."
+            "value": "Aucun écran disponible"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nessun contenuto di riunione pertinente trovato per questa domanda."
+            "value": "Nessuno schermo disponibile"
+          }
+        }
+      }
+    },
+    "No recordings match your search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Aufnahmen entsprechen der Suche"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna grabación coincide con tu búsqueda"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun enregistrement ne correspond à votre recherche"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna registrazione corrisponde alla ricerca"
+          }
+        }
+      }
+    },
+    "No speech during this annotation.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Während dieser Annotation wurde nichts gesagt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se habló durante esta anotación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien n’a été dit pendant cette annotation."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun parlato durante questa annotazione."
           }
         }
       }
@@ -2297,6 +3221,34 @@
         }
       }
     },
+    "No windows available": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Fenster verfügbar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay ventanas disponibles"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune fenêtre disponible"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna finestra disponibile"
+          }
+        }
+      }
+    },
     "Not downloaded": {
       "localizations": {
         "de": {
@@ -2321,6 +3273,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non scaricato"
+          }
+        }
+      }
+    },
+    "Nothing in your recordings answers this question.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine deiner Aufnahmen beantwortet diese Frage."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna de tus grabaciones responde a esta pregunta."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun de vos enregistrements ne répond à cette question."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna delle tue registrazioni risponde a questa domanda."
           }
         }
       }
@@ -2409,6 +3389,62 @@
         }
       }
     },
+    "Open System Settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemeinstellungen öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes del Sistema"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir Réglages Système"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri Impostazioni di Sistema"
+          }
+        }
+      }
+    },
+    "Open the full screenshot": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollständigen Screenshot öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir la captura completa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir la capture complète"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri lo screenshot completo"
+          }
+        }
+      }
+    },
     "Parakeet": {
       "localizations": {
         "de": {
@@ -2433,6 +3469,90 @@
           "stringUnit": {
             "state": "translated",
             "value": "Parakeet"
+          }
+        }
+      }
+    },
+    "Pause Recording": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme pausieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausar grabación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre l’enregistrement en pause"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metti in pausa la registrazione"
+          }
+        }
+      }
+    },
+    "Pause recording": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme pausieren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausar grabación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre en pause"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Metti in pausa"
+          }
+        }
+      }
+    },
+    "Paused %d:%02d": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausiert %d:%02d"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa %d:%02d"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pause %d:%02d"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In pausa %d:%02d"
           }
         }
       }
@@ -2465,58 +3585,58 @@
         }
       }
     },
-    "Pick which model writes summaries, extracts action points, and answers cross-meeting questions. Voice AI and Search AI are unaffected.": {
+    "Pick which model writes summaries, extracts action points, and answers questions across your recordings. Voice AI and Search AI are unaffected.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Legt fest, welches Modell Zusammenfassungen schreibt, Aktionspunkte extrahiert und meetingübergreifende Fragen beantwortet. Voice AI und Search AI sind davon nicht betroffen."
+            "value": "Legt fest, welches Modell Zusammenfassungen schreibt, Aktionspunkte extrahiert und Fragen über alle Aufnahmen hinweg beantwortet. Voice AI und Search AI sind davon nicht betroffen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Elige qué modelo escribe los resúmenes, extrae los puntos de acción y responde preguntas entre reuniones. La IA de voz y la IA de búsqueda no se ven afectadas."
+            "value": "Elige qué modelo escribe los resúmenes, extrae los puntos de acción y responde preguntas sobre tus grabaciones. La IA de voz y la IA de búsqueda no se ven afectadas."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choisissez le modèle qui rédige les résumés, extrait les points d'action et répond aux questions couvrant plusieurs réunions. Voice AI et Search AI ne sont pas concernées."
+            "value": "Choisissez le modèle qui rédige les résumés, extrait les points d'action et répond aux questions sur vos enregistrements. Voice AI et Search AI ne sont pas concernées."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scegli quale modello scrive i riepiloghi, estrae i punti d'azione e risponde alle domande tra più riunioni. L'IA vocale e l'IA di ricerca non ne sono interessate."
+            "value": "Scegli quale modello scrive i riepiloghi, estrae i punti d'azione e risponde alle domande sulle tue registrazioni. L'IA vocale e l'IA di ricerca non ne sono interessate."
           }
         }
       }
     },
-    "Private meeting intelligence that runs entirely on your Mac": {
+    "Press ⌘V in %@ to attach everything, then send.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Private Meeting-Intelligenz, die vollständig auf dem Mac läuft"
+            "value": "Drücke ⌘V in %@, um alles anzuhängen, und sende dann."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inteligencia de reuniones privada que funciona íntegramente en tu Mac"
+            "value": "Pulsa ⌘V en %@ para adjuntarlo todo y luego envía."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'intelligence de réunion privée qui fonctionne entièrement sur votre Mac"
+            "value": "Appuie sur ⌘V dans %@ pour tout joindre, puis envoie."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Intelligenza per riunioni privata che funziona interamente sul tuo Mac"
+            "value": "Premi ⌘V in %@ per allegare tutto, poi invia."
           }
         }
       }
@@ -2885,6 +4005,34 @@
         }
       }
     },
+    "Record, transcribe and search, privately on your Mac": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnehmen, transkribieren und durchsuchen – privat auf dem Mac"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Graba, transcribe y busca, en privado en tu Mac"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrez, transcrivez et recherchez, en privé sur votre Mac"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra, trascrivi e cerca, in privato sul tuo Mac"
+          }
+        }
+      }
+    },
     "Recording": {
       "localizations": {
         "de": {
@@ -2941,6 +4089,34 @@
         }
       }
     },
+    "Recordings Stored": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gespeicherte Aufnahmen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grabaciones almacenadas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrements stockés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrazioni archiviate"
+          }
+        }
+      }
+    },
     "Recording… %d:%02d": {
       "localizations": {
         "de": {
@@ -2969,30 +4145,30 @@
         }
       }
     },
-    "Refine with Whisper after each meeting": {
+    "Refine with Whisper after each recording": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nach jedem Meeting mit Whisper verfeinern"
+            "value": "Nach jeder Aufnahme mit Whisper verfeinern"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refinar con Whisper después de cada reunión"
+            "value": "Refinar con Whisper después de cada grabación"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Affiner avec Whisper après chaque réunion"
+            "value": "Affiner avec Whisper après chaque enregistrement"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Perfeziona con Whisper dopo ogni riunione"
+            "value": "Perfeziona con Whisper dopo ogni registrazione"
           }
         }
       }
@@ -3081,6 +4257,34 @@
         }
       }
     },
+    "Rename…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenennen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar nombre…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renommer…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rinomina…"
+          }
+        }
+      }
+    },
     "Reset to default": {
       "localizations": {
         "de": {
@@ -3105,6 +4309,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ripristina predefinito"
+          }
+        }
+      }
+    },
+    "Resume Recording": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme fortsetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar grabación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reprendre l’enregistrement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprendi registrazione"
+          }
+        }
+      }
+    },
+    "Resume recording": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme fortsetzen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar grabación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reprendre l’enregistrement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprendi registrazione"
           }
         }
       }
@@ -3165,6 +4425,62 @@
         }
       }
     },
+    "Reveal them in Finder to drag into the chat": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Finder zeigen, um sie in den Chat zu ziehen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrarlos en Finder para arrastrarlos al chat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les afficher dans le Finder pour les glisser dans la discussion"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrali nel Finder per trascinarli nella chat"
+          }
+        }
+      }
+    },
+    "Review": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revue"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisione"
+          }
+        }
+      }
+    },
     "Runs a full Whisper pass once recording stops, replacing the live transcript with the most accurate version. Needs the Whisper model downloaded.": {
       "localizations": {
         "de": {
@@ -3221,114 +4537,170 @@
         }
       }
     },
-    "Search Meetings": {
+    "Screen": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meetings durchsuchen"
+            "value": "Bildschirm"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buscar reuniones"
+            "value": "Pantalla"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rechercher des réunions"
+            "value": "Écran"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cerca riunioni"
+            "value": "Schermo"
           }
         }
       }
     },
-    "Search meetings...": {
+    "Search Recordings": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meetings durchsuchen..."
+            "value": "Aufnahmen durchsuchen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buscar reuniones..."
+            "value": "Buscar grabaciones"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rechercher des réunions..."
+            "value": "Rechercher des enregistrements"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cerca riunioni..."
+            "value": "Cerca registrazioni"
           }
         }
       }
     },
-    "Select a meeting to begin": {
+    "Search recordings...": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zum Starten ein Meeting auswählen"
+            "value": "Aufnahmen durchsuchen..."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Selecciona una reunión para empezar"
+            "value": "Buscar grabaciones..."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sélectionnez une réunion pour commencer"
+            "value": "Rechercher des enregistrements..."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seleziona una riunione per iniziare"
+            "value": "Cerca registrazioni..."
           }
         }
       }
     },
-    "Select one or more audio or video files. Each file is processed sequentially through transcription, summary, and embeddings — files beyond the first show a Queued badge in the meeting list.": {
+    "Select a recording to begin": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eine oder mehrere Audio- oder Videodateien auswählen. Jede Datei durchläuft nacheinander Transkription, Zusammenfassung und Embeddings — alle Dateien nach der ersten erhalten in der Meeting-Liste die Kennzeichnung „In Warteschlange“."
+            "value": "Zum Starten eine Aufnahme auswählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Selecciona uno o varios archivos de audio o vídeo. Cada archivo se procesa secuencialmente mediante transcripción, resumen y embeddings — los archivos posteriores al primero muestran la insignia \"En cola\" en la lista de reuniones."
+            "value": "Selecciona una grabación para empezar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sélectionnez un ou plusieurs fichiers audio ou vidéo. Chaque fichier passe successivement par la transcription, le résumé et les embeddings — au-delà du premier, les fichiers affichent un badge « En file d'attente » dans la liste des réunions."
+            "value": "Sélectionnez un enregistrement pour commencer"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seleziona uno o più file audio o video. Ogni file viene elaborato in sequenza attraverso trascrizione, riepilogo ed embedding — i file successivi al primo mostrano il badge In coda nell'elenco delle riunioni."
+            "value": "Seleziona una registrazione per iniziare"
+          }
+        }
+      }
+    },
+    "Select one or more audio or video files. Each file is processed sequentially through transcription, summary, and embeddings — files beyond the first show a Queued badge in the recording list.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine oder mehrere Audio- oder Videodateien auswählen. Jede Datei durchläuft nacheinander Transkription, Zusammenfassung und Embeddings — alle Dateien nach der ersten erhalten in der Aufnahmeliste die Kennzeichnung „In Warteschlange“."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona uno o varios archivos de audio o vídeo. Cada archivo se procesa secuencialmente mediante transcripción, resumen y embeddings — los archivos posteriores al primero muestran la insignia \"En cola\" en la lista de grabaciones."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez un ou plusieurs fichiers audio ou vidéo. Chaque fichier passe successivement par la transcription, le résumé et les embeddings — au-delà du premier, les fichiers affichent un badge « En file d'attente » dans la liste des enregistrements."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleziona uno o più file audio o video. Ogni file viene elaborato in sequenza attraverso trascrizione, riepilogo ed embedding — i file successivi al primo mostrano il badge In coda nell'elenco delle registrazioni."
+          }
+        }
+      }
+    },
+    "Send to %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An %@ senden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar a %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer à %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia a %@"
           }
         }
       }
@@ -3417,6 +4789,62 @@
         }
       }
     },
+    "Show files": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateien zeigen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar archivos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher les fichiers"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra file"
+          }
+        }
+      }
+    },
+    "Sound from the recorded window's app": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton der App des aufgenommenen Fensters"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonido de la app de la ventana grabada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son de l’app de la fenêtre enregistrée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio dell’app della finestra registrata"
+          }
+        }
+      }
+    },
     "Sources": {
       "localizations": {
         "de": {
@@ -3445,6 +4873,62 @@
         }
       }
     },
+    "Spec Folder…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spezifikationsordner…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carpeta de especificación…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dossier de spécification…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cartella specifiche…"
+          }
+        }
+      }
+    },
+    "Start Learning Session": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lernsitzung starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión de aprendizaje"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer une session d’apprentissage"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia sessione di apprendimento"
+          }
+        }
+      }
+    },
     "Start Recording": {
       "localizations": {
         "de": {
@@ -3463,6 +4947,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Démarrer l'enregistrement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia registrazione"
+          }
+        }
+      }
+    },
+    "Start Recording…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme starten…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar grabación…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer l'enregistrement…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia registrazione…"
+          }
+        }
+      }
+    },
+    "Start recording": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar grabación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer l’enregistrement"
           }
         },
         "it": {
@@ -3497,6 +5037,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avvio in corso…"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopp"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
           }
         }
       }
@@ -3557,6 +5125,90 @@
         }
       }
     },
+    "Stop the current recording (⌘⇧R)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Aufnahme beenden (⌘⇧R)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener la grabación actual (⌘⇧R)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter l’enregistrement en cours (⌘⇧R)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interrompi la registrazione (⌘⇧R)"
+          }
+        }
+      }
+    },
+    "System audio": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemaudio"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio del sistema"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio du système"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio di sistema"
+          }
+        }
+      }
+    },
+    "System default": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemstandard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predeterminado del sistema"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valeur par défaut du système"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predefinito di sistema"
+          }
+        }
+      }
+    },
     "TOM": {
       "localizations": {
         "de": {
@@ -3585,86 +5237,114 @@
         }
       }
     },
-    "TOM needs two permissions to record meetings": {
+    "TOM needs the microphone to record your voice. Turn it on for TOM in System Settings › Privacy & Security › Microphone, or switch the microphone off in the record panel to record system audio only.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM benötigt zwei Berechtigungen, um Meetings aufzunehmen"
+            "value": "TOM braucht das Mikrofon, um deine Stimme aufzunehmen. Aktiviere es für TOM unter Systemeinstellungen › Datenschutz & Sicherheit › Mikrofon, oder schalte das Mikrofon im Aufnahmefenster aus, um nur das Systemaudio aufzunehmen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM necesita dos permisos para grabar reuniones"
+            "value": "TOM necesita el micrófono para grabar tu voz. Actívalo para TOM en Ajustes del Sistema › Privacidad y seguridad › Micrófono, o desactiva el micrófono en el panel de grabación para grabar solo el audio del sistema."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM a besoin de deux autorisations pour enregistrer les réunions"
+            "value": "TOM a besoin du micro pour enregistrer votre voix. Activez-le pour TOM dans Réglages Système › Confidentialité et sécurité › Micro, ou coupez le micro dans le panneau d’enregistrement pour n’enregistrer que l’audio du système."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM ha bisogno di due autorizzazioni per registrare le riunioni"
+            "value": "TOM ha bisogno del microfono per registrare la tua voce. Attivalo per TOM in Impostazioni di Sistema › Privacy e sicurezza › Microfono, oppure disattiva il microfono nel pannello di registrazione per registrare solo l’audio di sistema."
           }
         }
       }
     },
-    "TOM — Meeting Library": {
+    "TOM needs two permissions to record": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM — Meeting-Bibliothek"
+            "value": "TOM benötigt zwei Berechtigungen für Aufnahmen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM — Biblioteca de reuniones"
+            "value": "TOM necesita dos permisos para grabar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM — Bibliothèque de réunions"
+            "value": "TOM a besoin de deux autorisations pour enregistrer"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "TOM — Libreria riunioni"
+            "value": "TOM ha bisogno di due autorizzazioni per registrare"
           }
         }
       }
     },
-    "Three models, downloaded once. Together they replace what cloud meeting apps do — on your Mac.": {
+    "TOM — Library": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Drei Modelle, einmal geladen. Zusammen ersetzen sie, was Cloud-Meeting-Apps leisten — direkt auf dem Mac."
+            "value": "TOM — Bibliothek"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tres modelos, descargados una sola vez. Juntos sustituyen lo que hacen las apps de reuniones en la nube — en tu Mac."
+            "value": "TOM — Biblioteca"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trois modèles, téléchargés une seule fois. Ensemble, ils remplacent ce que font les apps de réunion cloud — sur votre Mac."
+            "value": "TOM — Bibliothèque"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tre modelli, scaricati una sola volta. Insieme sostituiscono ciò che fanno le app per riunioni in cloud — sul tuo Mac."
+            "value": "TOM — Libreria"
+          }
+        }
+      }
+    },
+    "Three models, downloaded once. Together they replace what cloud transcription apps do — on your Mac.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drei Modelle, einmal geladen. Zusammen ersetzen sie, was Cloud-Transkriptions-Apps leisten — direkt auf dem Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tres modelos, descargados una sola vez. Juntos sustituyen lo que hacen las apps de transcripción en la nube — en tu Mac."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trois modèles, téléchargés une seule fois. Ensemble, ils remplacent ce que font les apps de transcription cloud — sur votre Mac."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tre modelli, scaricati una sola volta. Insieme sostituiscono ciò che fanno le app di trascrizione in cloud — sul tuo Mac."
           }
         }
       }
@@ -3753,6 +5433,34 @@
         }
       }
     },
+    "Transcript still processing — speech appears when it's done.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript wird noch verarbeitet – Gesprochenes erscheint, sobald es fertig ist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La transcripción aún se está procesando; el habla aparecerá cuando termine."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription en cours – les paroles apparaîtront une fois terminée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trascrizione ancora in elaborazione: il parlato apparirà al termine."
+          }
+        }
+      }
+    },
     "Transcription failed: %@": {
       "localizations": {
         "de": {
@@ -3809,7 +5517,147 @@
         }
       }
     },
+    "Turn on the microphone or system audio to get a transcript.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schalte Mikrofon oder Systemaudio ein, um ein Transkript zu erhalten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa el micrófono o el audio del sistema para obtener una transcripción."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez le micro ou l’audio du système pour obtenir une transcription."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attiva il microfono o l’audio di sistema per ottenere una trascrizione."
+          }
+        }
+      }
+    },
+    "Undo last mark": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Markierung rückgängig"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deshacer última marca"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler la dernière marque"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla ultimo segno"
+          }
+        }
+      }
+    },
+    "Unmute Microphone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon einschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar micrófono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réactiver le micro"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riattiva microfono"
+          }
+        }
+      }
+    },
+    "Unmute microphone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon einschalten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar micrófono"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réactiver le micro"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riattiva microfono"
+          }
+        }
+      }
+    },
     "Upload Recording…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme hochladen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subir grabación…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer un enregistrement…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carica registrazione…"
+          }
+        }
+      }
+    },
+    "Upload recording…": {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -3889,6 +5737,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versione %@"
+          }
+        }
+      }
+    },
+    "Video (.mp4)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video (.mp4)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vídeo (.mp4)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vidéo (.mp4)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video (.mp4)"
+          }
+        }
+      }
+    },
+    "Voice note": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachnotiz"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nota de voz"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note vocale"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nota vocale"
           }
         }
       }
@@ -4001,6 +5905,62 @@
           "stringUnit": {
             "state": "translated",
             "value": "Whisper non è ancora scaricato. Apri Impostazioni → Modelli IA e completa prima il download del modello."
+          }
+        }
+      }
+    },
+    "Window": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenster"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finestra"
+          }
+        }
+      }
+    },
+    "Words appear while you talk": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wörter erscheinen, während du sprichst"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las palabras aparecen mientras hablas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les mots apparaissent pendant que vous parlez"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le parole appaiono mentre parli"
           }
         }
       }
@@ -4145,6 +6105,34 @@
         }
       }
     },
+    "choose a window": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenster wählen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "elige una ventana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "choisir une fenêtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "scegli una finestra"
+          }
+        }
+      }
+    },
     "tom": {
       "localizations": {
         "de": {
@@ -4169,6 +6157,34 @@
           "stringUnit": {
             "state": "translated",
             "value": "tom"
+          }
+        }
+      }
+    },
+    "⌥A annotate · ⌥M mark · Esc cancel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥A annotieren · ⌥M markieren · Esc abbrechen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥A anotar · ⌥M marcar · Esc cancelar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥A annoter · ⌥M marquer · Échap annuler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥A annota · ⌥M segna · Esc annulla"
           }
         }
       }
