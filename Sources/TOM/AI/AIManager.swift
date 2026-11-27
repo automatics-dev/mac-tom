@@ -528,22 +528,22 @@ final class ModelDownloadManager: ObservableObject {
 
     static let transcriptionInfo = ModelInfo(
         title: "Whisper large-v3-turbo",
-        subtitle: "Speech → text · ~1.5 GB",
+        subtitle: String(localized: "Speech → text · ~1.5 GB"),
         icon: "waveform"
     )
     static let parakeetInfo = ModelInfo(
         title: "Parakeet TDT v3",
-        subtitle: "Real-time speech → text · ~500 MB · 25 languages",
+        subtitle: String(localized: "Real-time speech → text · ~500 MB · 25 languages"),
         icon: "bolt.badge.waveform"
     )
     static let summaryInfo = ModelInfo(
         title: "Qwen 3 4B Instruct 2507 (4-bit)",
-        subtitle: "Summaries & titles · ~2.4 GB",
+        subtitle: String(localized: "Summaries & titles · ~2.4 GB"),
         icon: "brain"
     )
     static let embeddingInfo = ModelInfo(
         title: "multilingual-e5-small",
-        subtitle: "Cross-meeting search · ~120 MB · 100+ languages",
+        subtitle: String(localized: "Cross-meeting search · ~120 MB · 100+ languages"),
         icon: "magnifyingglass"
     )
 

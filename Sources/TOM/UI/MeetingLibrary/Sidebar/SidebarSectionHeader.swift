@@ -3,12 +3,12 @@ import SwiftUI
 // MARK: - Section Header
 
 struct SidebarSectionHeader: View {
-    let title: String
+    let title: LocalizedStringKey
     var onAdd: (() -> Void)?
 
     var body: some View {
         HStack {
-            Text(title.uppercased())
+            Text(title).textCase(.uppercase)
                 .font(.system(size: 11, weight: .semibold))
                 .tracking(0.6)
                 .foregroundColor(.subtleText)

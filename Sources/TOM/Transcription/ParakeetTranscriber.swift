@@ -40,8 +40,8 @@ enum TranscriptionEngine: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .parakeet: "Parakeet v3 — real-time, 25 languages"
-        case .whisper: "Whisper large-v3-turbo — highest accuracy"
+        case .parakeet: String(localized: "Parakeet v3 — real-time, 25 languages")
+        case .whisper: String(localized: "Whisper large-v3-turbo — highest accuracy")
         }
     }
 

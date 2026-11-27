@@ -26,6 +26,12 @@
             "state": "translated",
             "value": ""
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ""
+          }
         }
       }
     },
@@ -53,6 +59,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registrazione pronta"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“录制就绪”"
           }
         }
       }
@@ -82,6 +94,22 @@
             "state": "translated",
             "value": "Riunione %@ rilevata"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测到 %@ 会议"
+          }
+        }
+      }
+    },
+    "%@ of %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ / %@"
+          }
         }
       }
     },
@@ -109,6 +137,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ ha rifiutato questa chiave API. Verifica che sia ancora attiva nella dashboard del tuo account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 拒绝了此 API 密钥。请在账户控制台中确认它仍然有效。"
           }
         }
       }
@@ -138,6 +172,12 @@
             "state": "translated",
             "value": "%@ ha rifiutato questa chiave API: %@. Verifica che la chiave sia ancora attiva nella dashboard del tuo account."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 拒绝了此 API 密钥：%@。请在账户控制台中确认该密钥仍然有效。"
+          }
         }
       }
     },
@@ -166,6 +206,12 @@
             "state": "translated",
             "value": "%@ ha restituito %lld: %@"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 返回了 %lld：%@"
+          }
         }
       }
     },
@@ -190,6 +236,12 @@
           }
         },
         "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ — %@"
+          }
+        },
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "%@ — %@"
@@ -222,6 +274,12 @@
             "state": "translated",
             "value": "%@ — Impossibile generare il riepilogo. Il modello on-device potrebbe essere ancora in download; riprova tra qualche istante."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ — 无法生成摘要。本机模型可能仍在下载，请稍后重试。"
+          }
         }
       }
     },
@@ -249,6 +307,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ — Riepilogo e trascrizione sono pronti"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ — 摘要和转写已就绪"
           }
         }
       }
@@ -278,6 +342,12 @@
             "state": "translated",
             "value": "%@ — fai clic per cambiare"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ — 点击切换"
+          }
         }
       }
     },
@@ -302,6 +372,12 @@
           }
         },
         "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        },
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld"
@@ -334,6 +410,12 @@
             "state": "translated",
             "value": "%lld registrazioni"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条录制"
+          }
         }
       }
     },
@@ -362,6 +444,12 @@
             "state": "translated",
             "value": "%lld screenshot superano il limite di file; usa Esporta ▸ Cartella specifiche per averli tutti."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 张截图超出文件限制；请使用“导出 ▸ 规格文件夹”获取全部截图。"
+          }
         }
       }
     },
@@ -386,6 +474,12 @@
           }
         },
         "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%%"
+          }
+        },
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld%%"
@@ -418,6 +512,22 @@
             "state": "translated",
             "value": "/"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/"
+          }
+        }
+      }
+    },
+    "AI Models": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 模型"
+          }
         }
       }
     },
@@ -445,6 +555,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Generazione IA non riuscita: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 生成失败：%@"
           }
         }
       }
@@ -474,6 +590,22 @@
             "state": "translated",
             "value": "I modelli IA non sono ancora pronti. Apri Impostazioni → Modelli IA e completa il download dei modelli."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 模型尚未就绪。请打开“设置 → AI 模型”完成模型下载。"
+          }
+        }
+      }
+    },
+    "About": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于"
+          }
         }
       }
     },
@@ -501,6 +633,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Attivo — in uso %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启用 — 使用 %@"
           }
         }
       }
@@ -530,6 +668,12 @@
             "state": "translated",
             "value": "Aggiungi una chiave API %@ per attivare"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加 %@ API 密钥以启用"
+          }
         }
       }
     },
@@ -557,6 +701,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Impostazioni avanzate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级设置"
+          }
+        }
+      }
+    },
+    "All Recordings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部录制"
           }
         }
       }
@@ -586,6 +746,22 @@
             "state": "translated",
             "value": "Tutti i modelli sono pronti"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有模型已就绪"
+          }
+        }
+      }
+    },
+    "All models run locally on Apple Silicon — your recordings never leave your Mac. You can optionally route Think AI to OpenAI's or Anthropic's most capable model below.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有模型都在 Apple Silicon 本机运行 — 你的录制绝不会离开 Mac。你也可以在下方将思考 AI 路由到 OpenAI 或 Anthropic 的最强模型。"
+          }
         }
       }
     },
@@ -613,6 +789,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tutto l’audio di questo Mac"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Mac 上播放的所有声音"
           }
         }
       }
@@ -642,6 +824,12 @@
             "state": "translated",
             "value": "Annota"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批注"
+          }
         }
       }
     },
@@ -669,6 +857,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Annota (⌥A)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批注（⌥A）"
           }
         }
       }
@@ -698,6 +892,12 @@
             "state": "translated",
             "value": "Annotazione %lld"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批注 %lld"
+          }
         }
       }
     },
@@ -725,6 +925,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scorciatoie di annotazione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批注快捷键"
           }
         }
       }
@@ -754,6 +960,12 @@
             "state": "translated",
             "value": "Annotazioni salvate"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批注已保存"
+          }
         }
       }
     },
@@ -781,6 +993,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "App"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用"
+          }
+        }
+      }
+    },
+    "App Info": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用信息"
+          }
+        }
+      }
+    },
+    "Appearance: Dark": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观：深色"
+          }
+        }
+      }
+    },
+    "Appearance: Light": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观：浅色"
+          }
+        }
+      }
+    },
+    "Appearance: System": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外观：跟随系统"
           }
         }
       }
@@ -810,6 +1068,22 @@
             "state": "translated",
             "value": "Arc → Impostazioni → Avanzate → Disattiva \"Usa accelerazione hardware\" → Riavvia"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arc → 设置 → 高级 → 关闭“使用硬件加速”→ 重新启动"
+          }
+        }
+      }
+    },
+    "Arrow": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "箭头"
+          }
         }
       }
     },
@@ -837,6 +1111,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fai domande su tutte le registrazioni..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨录制提问…"
           }
         }
       }
@@ -866,6 +1146,12 @@
             "state": "translated",
             "value": "Audio (.m4a)"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频（.m4a）"
+          }
         }
       }
     },
@@ -893,6 +1179,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solo audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅音频"
           }
         }
       }
@@ -922,6 +1214,32 @@
             "state": "translated",
             "value": "Il buffer audio è mancante o non valido."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频缓冲区缺失或无效。"
+          }
+        }
+      }
+    },
+    "Automatically check for updates": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动检查更新"
+          }
+        }
+      }
+    },
+    "Automatically download updates": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动下载更新"
+          }
         }
       }
     },
@@ -949,6 +1267,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Indietro"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一步"
           }
         }
       }
@@ -978,6 +1302,12 @@
             "state": "translated",
             "value": "Backend"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后端"
+          }
         }
       }
     },
@@ -1005,6 +1335,32 @@
           "stringUnit": {
             "state": "translated",
             "value": "Video nero durante la registrazione di Chrome o Arc?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制 Chrome 或 Arc 时画面黑屏？"
+          }
+        }
+      }
+    },
+    "Box": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "框选"
+          }
+        }
+      }
+    },
+    "Calculating…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计算中…"
           }
         }
       }
@@ -1034,6 +1390,32 @@
             "state": "translated",
             "value": "Annulla"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "Capture windows and screens": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获窗口和屏幕"
+          }
+        }
+      }
+    },
+    "Capture your voice": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获你的声音"
+          }
         }
       }
     },
@@ -1061,6 +1443,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Controlla aggiornamenti"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新"
           }
         }
       }
@@ -1090,6 +1478,12 @@
             "state": "translated",
             "value": "Controlla aggiornamenti…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新…"
+          }
         }
       }
     },
@@ -1117,6 +1511,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verifica in corso…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查中…"
+          }
+        }
+      }
+    },
+    "Choose Start Recording for a meeting, voice note or feedback session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择“开始录制”来录制会议、语音笔记或反馈会话"
           }
         }
       }
@@ -1146,6 +1556,12 @@
             "state": "translated",
             "value": "Scegli cosa registrare"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择录制内容"
+          }
         }
       }
     },
@@ -1173,6 +1589,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scegli cosa e come registrare (⌘⇧R)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择录制内容和方式（⌘⇧R）"
           }
         }
       }
@@ -1202,6 +1624,12 @@
             "state": "translated",
             "value": "Scegli cosa registrare"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择录制内容"
+          }
         }
       }
     },
@@ -1229,6 +1657,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chrome e i browser basati su Chromium (Arc, Edge, Brave) usano un rendering con accelerazione GPU che aggira la cattura dello schermo di macOS. Questo riguarda tutti i registratori di schermo, non solo TOM."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chrome 及基于 Chromium 的浏览器（Arc、Edge、Brave）使用 GPU 加速渲染，会绕过 macOS 屏幕捕获。这影响所有录屏工具，不只是 TOM。"
           }
         }
       }
@@ -1258,6 +1692,12 @@
             "state": "translated",
             "value": "Chrome → Impostazioni → Sistema → Disattiva \"Usa l'accelerazione hardware quando disponibile\" → Riavvia"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chrome → 设置 → 系统 → 关闭“使用硬件加速模式（如果可用）”→ 重新启动"
+          }
         }
       }
     },
@@ -1285,6 +1725,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cancella"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除"
+          }
+        }
+      }
+    },
+    "Click the TOM icon in your menu bar to start": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击菜单栏中的 TOM 图标开始"
           }
         }
       }
@@ -1314,6 +1770,12 @@
             "state": "translated",
             "value": "Fai clic per rinominare %@"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击重命名 %@"
+          }
         }
       }
     },
@@ -1341,6 +1803,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Chiudi Impostazioni"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭设置"
           }
         }
       }
@@ -1370,6 +1838,22 @@
             "state": "translated",
             "value": "Il cervello cloud è impostato su %@ ma nel portachiavi non è presente alcuna chiave API %@. Apri Impostazioni → Modelli IA per aggiungerne una, oppure passa al modello locale."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "云端大脑已设为 %@，但钥匙串中没有 %@ API 密钥。请打开“设置 → AI 模型”添加密钥，或切换到本地模型。"
+          }
+        }
+      }
+    },
+    "Completed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
         }
       }
     },
@@ -1397,6 +1881,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Revisione copiata"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制批注"
           }
         }
       }
@@ -1426,6 +1916,12 @@
             "state": "translated",
             "value": "Revisione e %lld screenshot copiati"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制批注和 %lld 张截图"
+          }
         }
       }
     },
@@ -1453,6 +1949,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copiato!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制！"
           }
         }
       }
@@ -1482,6 +1984,12 @@
             "state": "translated",
             "value": "Copia revisione, screenshot e trascrizione; incolla con ⌘V."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制批注、截图和转写；按 ⌘V 粘贴。"
+          }
         }
       }
     },
@@ -1509,6 +2017,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Copia"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制"
           }
         }
       }
@@ -1538,6 +2052,22 @@
             "state": "translated",
             "value": "Impossibile raggiungere %@ per verificare la chiave: %@. Controlla la connessione e riprova."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接 %@ 验证密钥：%@。请检查网络后重试。"
+          }
+        }
+      }
+    },
+    "Cross-meeting search · ~120 MB · 100+ languages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨会议搜索 · 约 120 MB · 100+ 种语言"
+          }
         }
       }
     },
@@ -1565,6 +2095,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "I prompt personalizzati si applicano solo alle nuove registrazioni o quando si ritrascrivono quelle esistenti. Non vengono applicati retroattivamente alla cronologia delle registrazioni."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义提示词仅适用于新录制或重新转写现有录制，不会追溯应用到历史记录。"
           }
         }
       }
@@ -1594,6 +2130,12 @@
             "state": "translated",
             "value": "Personalizzato"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已自定义"
+          }
         }
       }
     },
@@ -1621,6 +2163,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Predefinito"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认"
           }
         }
       }
@@ -1650,6 +2198,12 @@
             "state": "translated",
             "value": "Elimina"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
         }
       }
     },
@@ -1677,6 +2231,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Elimina gruppo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除分组"
+          }
+        }
+      }
+    },
+    "Detects Zoom, Google Meet, Teams, Webex and Slack Huddle windows and offers to record with one click.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测 Zoom、Google Meet、Teams、Webex 和 Slack Huddle 窗口，并提供一键录制。"
           }
         }
       }
@@ -1706,6 +2276,22 @@
             "state": "translated",
             "value": "Log diagnostico"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "诊断日志"
+          }
+        }
+      }
+    },
+    "Diagnostics": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "诊断"
+          }
         }
       }
     },
@@ -1733,6 +2319,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scarta questa annotazione (Esc)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃此批注（Esc）"
           }
         }
       }
@@ -1762,6 +2354,12 @@
             "state": "translated",
             "value": "Utilizzo del disco"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘占用"
+          }
         }
       }
     },
@@ -1789,6 +2387,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nome visualizzato"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示名称"
+          }
+        }
+      }
+    },
+    "Double-click to rename": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双击重命名"
           }
         }
       }
@@ -1818,6 +2432,12 @@
             "state": "translated",
             "value": "Scarica"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载"
+          }
         }
       }
     },
@@ -1845,6 +2465,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scarica tutto (~4 GB)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部下载（约 4 GB）"
+          }
+        }
+      }
+    },
+    "Downloading %@…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在下载 %@…"
           }
         }
       }
@@ -1874,6 +2510,12 @@
             "state": "translated",
             "value": "Download in corso…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下载中…"
+          }
         }
       }
     },
@@ -1901,6 +2543,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scarica circa 4 GB. Puoi continuare a usare il Mac mentre l'operazione prosegue in background."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "约下载 4 GB。下载在后台进行，你可以继续使用 Mac。"
           }
         }
       }
@@ -1930,6 +2578,12 @@
             "state": "translated",
             "value": "Vuoto — viene usato il prompt predefinito incluso. Scrivi qui per sostituirlo."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为空 — 使用内置默认提示词。在此输入可覆盖。"
+          }
         }
       }
     },
@@ -1957,6 +2611,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Motore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "引擎"
           }
         }
       }
@@ -1986,6 +2646,12 @@
             "state": "translated",
             "value": "Errore: %@"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "错误：%@"
+          }
         }
       }
     },
@@ -2013,6 +2679,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esporta"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出"
           }
         }
       }
@@ -2042,6 +2714,12 @@
             "state": "translated",
             "value": "Esportazione non riuscita"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出失败"
+          }
         }
       }
     },
@@ -2069,6 +2747,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esportazione…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出中…"
           }
         }
       }
@@ -2098,6 +2782,12 @@
             "state": "translated",
             "value": "Non riuscito"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败"
+          }
         }
       }
     },
@@ -2125,6 +2815,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Feedback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反馈"
           }
         }
       }
@@ -2154,6 +2850,12 @@
             "state": "translated",
             "value": "Fine"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
         }
       }
     },
@@ -2181,6 +2883,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Termina annotazione (⌥A)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成批注（⌥A）"
           }
         }
       }
@@ -2210,6 +2918,22 @@
             "state": "translated",
             "value": "Completamento della registrazione precedente…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在结束上一条录制…"
+          }
+        }
+      }
+    },
+    "First launch downloads ~4 GB of AI models. Free space recommended: 6 GB.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首次启动会下载约 4 GB AI 模型。建议预留 6 GB 可用空间。"
+          }
         }
       }
     },
@@ -2237,6 +2961,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "La prima domanda dopo un periodo di inattività carica il modello — richiede circa 10 secondi."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闲置后首次提问需要加载模型，约 10 秒。"
+          }
+        }
+      }
+    },
+    "Freehand": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由绘制"
           }
         }
       }
@@ -2266,6 +3006,22 @@
             "state": "translated",
             "value": "Schermo intero"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全屏"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通用"
+          }
         }
       }
     },
@@ -2293,6 +3049,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inizia"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始使用"
           }
         }
       }
@@ -2322,6 +3084,12 @@
             "state": "translated",
             "value": "Consenti"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权"
+          }
         }
       }
     },
@@ -2349,6 +3117,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Concedi le autorizzazioni"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授予权限"
+          }
+        }
+      }
+    },
+    "Group": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分组"
           }
         }
       }
@@ -2378,6 +3162,22 @@
             "state": "translated",
             "value": "Nome del gruppo"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分组名称"
+          }
+        }
+      }
+    },
+    "Groups": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分组"
+          }
         }
       }
     },
@@ -2405,6 +3205,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nascondi ricerca"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏搜索"
           }
         }
       }
@@ -2434,6 +3240,12 @@
             "state": "translated",
             "value": "Importa"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入"
+          }
         }
       }
     },
@@ -2461,6 +3273,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Importa registrazioni"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入录制"
           }
         }
       }
@@ -2490,6 +3308,22 @@
             "state": "translated",
             "value": "Includi audio di sistema"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含系统音频"
+          }
+        }
+      }
+    },
+    "LLM": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LLM"
+          }
         }
       }
     },
@@ -2517,6 +3351,32 @@
           "stringUnit": {
             "state": "translated",
             "value": "Etichetta ultimo segno"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记上一个时刻"
+          }
+        }
+      }
+    },
+    "Launch at Login": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录时启动"
+          }
+        }
+      }
+    },
+    "Leave empty to use the built-in default. Enter your own system prompt to override it. Available placeholders: {{kindNoun}} (recording type), {{language}} (detected transcript language).": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留空则使用内置默认值。输入自定义系统提示词可覆盖。可用占位符：{{kindNoun}}（录制类型）、{{language}}（检测到的转写语言）。"
           }
         }
       }
@@ -2546,6 +3406,22 @@
             "state": "translated",
             "value": "Trascrizione in tempo reale"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时转写"
+          }
+        }
+      }
+    },
+    "Local": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地"
+          }
         }
       }
     },
@@ -2573,6 +3449,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ricerca tra le tue registrazioni…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检索你的录制…"
           }
         }
       }
@@ -2602,6 +3484,12 @@
             "state": "translated",
             "value": "Segna"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记"
+          }
         }
       }
     },
@@ -2630,6 +3518,12 @@
             "state": "translated",
             "value": "Segna questo momento (⌥M)"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记此时刻（⌥M）"
+          }
         }
       }
     },
@@ -2654,6 +3548,12 @@
           }
         },
         "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown"
+          }
+        },
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "Markdown"
@@ -2686,6 +3586,12 @@
             "state": "translated",
             "value": "Segnaposto %lld"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记 %lld"
+          }
         }
       }
     },
@@ -2713,6 +3619,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Riunione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会议"
           }
         }
       }
@@ -2742,6 +3654,12 @@
             "state": "translated",
             "value": "Riunione pronta"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会议就绪"
+          }
         }
       }
     },
@@ -2769,6 +3687,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microfono"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风"
           }
         }
       }
@@ -2798,6 +3722,12 @@
             "state": "translated",
             "value": "L’accesso al microfono è disattivato"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "麦克风权限已关闭"
+          }
         }
       }
     },
@@ -2825,6 +3755,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "I modelli sono ancora in download in background. Puoi registrare subito — trascrizione e riepiloghi verranno eseguiti non appena il rispettivo modello sarà pronto."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型仍在后台下载。你可以先录制；模型就绪后会自动转写和生成摘要。"
           }
         }
       }
@@ -2854,6 +3790,12 @@
             "state": "translated",
             "value": "Disattiva microfono"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静音麦克风"
+          }
         }
       }
     },
@@ -2881,6 +3823,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Disattiva microfono"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静音麦克风"
           }
         }
       }
@@ -2910,6 +3858,12 @@
             "state": "translated",
             "value": "Nome:"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称："
+          }
         }
       }
     },
@@ -2937,6 +3891,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nuovo gruppo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建分组"
           }
         }
       }
@@ -2966,6 +3926,12 @@
             "state": "translated",
             "value": "Nuova registrazione"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新建录制"
+          }
         }
       }
     },
@@ -2993,6 +3959,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nuova finestra"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新窗口"
           }
         }
       }
@@ -3022,6 +3994,22 @@
             "state": "translated",
             "value": "Avanti"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一步"
+          }
+        }
+      }
+    },
+    "No accounts, no API keys, no cloud — your audio never leaves the Mac.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需账号、无需 API 密钥、无需云端 — 你的音频绝不会离开这台 Mac。"
+          }
         }
       }
     },
@@ -3049,6 +4037,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nessuna annotazione in questa sessione. Premi ⌥A durante la registrazione per annotare lo schermo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话没有批注。录制时按 ⌥A 可在屏幕上批注。"
           }
         }
       }
@@ -3078,6 +4072,12 @@
             "state": "translated",
             "value": "Nessuno schermo disponibile"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可用显示器"
+          }
         }
       }
     },
@@ -3105,6 +4105,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nessuna registrazione corrisponde alla ricerca"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的录制"
           }
         }
       }
@@ -3134,6 +4140,12 @@
             "state": "translated",
             "value": "Nessun parlato durante questa annotazione."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此批注期间没有语音。"
+          }
         }
       }
     },
@@ -3161,6 +4173,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nessun riepilogo disponibile."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无摘要。"
           }
         }
       }
@@ -3190,6 +4208,12 @@
             "state": "translated",
             "value": "Nessuna trascrizione disponibile"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无转写"
+          }
         }
       }
     },
@@ -3217,6 +4241,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nessuna trascrizione disponibile."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无转写。"
           }
         }
       }
@@ -3246,6 +4276,12 @@
             "state": "translated",
             "value": "Nessuna finestra disponibile"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可用窗口"
+          }
         }
       }
     },
@@ -3273,6 +4309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Non scaricato"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未下载"
           }
         }
       }
@@ -3302,6 +4344,22 @@
             "state": "translated",
             "value": "Nessuna delle tue registrazioni risponde a questa domanda."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的录制中没有能回答此问题的内容。"
+          }
+        }
+      }
+    },
+    "Notify when a meeting starts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会议开始时通知"
+          }
         }
       }
     },
@@ -3329,6 +4387,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "OK"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        }
+      }
+    },
+    "On-device AI handles transcription, summaries, and search.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机 AI 负责转写、摘要和搜索。"
           }
         }
       }
@@ -3358,6 +4432,12 @@
             "state": "translated",
             "value": "Apri dashboard"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开主界面"
+          }
         }
       }
     },
@@ -3385,6 +4465,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apri cartella dei dati"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开数据文件夹"
           }
         }
       }
@@ -3414,6 +4500,12 @@
             "state": "translated",
             "value": "Apri Impostazioni di Sistema"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开系统设置"
+          }
         }
       }
     },
@@ -3441,6 +4533,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apri lo screenshot completo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开完整截图"
           }
         }
       }
@@ -3470,6 +4568,22 @@
             "state": "translated",
             "value": "Parakeet"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet"
+          }
+        }
+      }
+    },
+    "Parakeet v3 — real-time, 25 languages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parakeet v3 — 实时，25 种语言"
+          }
         }
       }
     },
@@ -3497,6 +4611,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Metti in pausa la registrazione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停录制"
           }
         }
       }
@@ -3526,6 +4646,12 @@
             "state": "translated",
             "value": "Metti in pausa"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停录制"
+          }
         }
       }
     },
@@ -3553,6 +4679,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "In pausa %d:%02d"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已暂停 %d:%02d"
           }
         }
       }
@@ -3582,6 +4714,12 @@
             "state": "translated",
             "value": "Scegli quale modello converte la voce in testo durante la registrazione. Parakeet trascrive in tempo reale in 25 lingue; Whisper è più lento ma il più accurato."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择录制时用于语音转文字的模型。Parakeet 可实时转写 25 种语言；Whisper 较慢但最准确。"
+          }
         }
       }
     },
@@ -3609,6 +4747,32 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scegli quale modello scrive i riepiloghi, estrae i punti d'azione e risponde alle domande sulle tue registrazioni. L'IA vocale e l'IA di ricerca non ne sono interessate."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择用于生成摘要、提取待办和跨录制回答问题的模型。语音 AI 和搜索 AI 不受影响。"
+          }
+        }
+      }
+    },
+    "Player": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "播放器"
+          }
+        }
+      }
+    },
+    "Preparing…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备中…"
           }
         }
       }
@@ -3638,6 +4802,22 @@
             "state": "translated",
             "value": "Premi ⌘V in %@ per allegare tutto, poi invia."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 %@ 中按 ⌘V 附加全部内容，然后发送。"
+          }
+        }
+      }
+    },
+    "Processing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理中"
+          }
         }
       }
     },
@@ -3665,6 +4845,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Elaborazione non riuscita"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理失败"
           }
         }
       }
@@ -3694,6 +4880,12 @@
             "state": "translated",
             "value": "Elaborazione in corso..."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理中…"
+          }
         }
       }
     },
@@ -3721,6 +4913,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "In coda — in attesa che la pipeline IA si liberi"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排队中 — 等待 AI 流水线空闲"
+          }
+        }
+      }
+    },
+    "Quick access to recording from the menu bar. TOM always keeps its Dock icon.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从菜单栏快速开始录制。TOM 始终保留 Dock 图标。"
           }
         }
       }
@@ -3750,6 +4958,12 @@
             "state": "translated",
             "value": "Esci da TOM"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出 TOM"
+          }
         }
       }
     },
@@ -3777,6 +4991,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Qwen 3 4B non è ancora scaricato. Apri Impostazioni → Modelli IA e completa prima il download del modello."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qwen 3 4B 尚未下载。请先打开“设置 → AI 模型”完成模型下载。"
           }
         }
       }
@@ -3806,6 +5026,12 @@
             "state": "translated",
             "value": "Scarica di nuovo"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新下载"
+          }
         }
       }
     },
@@ -3833,6 +5059,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scarica di nuovo tutto"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部重新下载"
           }
         }
       }
@@ -3862,6 +5094,12 @@
             "state": "translated",
             "value": "Nuova trascrizione in corso…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新转写中…"
+          }
         }
       }
     },
@@ -3889,6 +5127,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Lettura e scrittura della risposta…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在阅读并生成回答…"
           }
         }
       }
@@ -3918,6 +5162,32 @@
             "state": "translated",
             "value": "Pronto"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "就绪"
+          }
+        }
+      }
+    },
+    "Real-time speech → text · ~500 MB · 25 languages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时语音 → 文字 · 约 500 MB · 25 种语言"
+          }
+        }
+      }
+    },
+    "Recent": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近"
+          }
         }
       }
     },
@@ -3945,6 +5215,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registra"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制"
           }
         }
       }
@@ -3974,6 +5250,12 @@
             "state": "translated",
             "value": "Registra nota vocale"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制语音笔记"
+          }
         }
       }
     },
@@ -4001,6 +5283,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registra una finestra…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制窗口…"
           }
         }
       }
@@ -4030,6 +5318,12 @@
             "state": "translated",
             "value": "Registra, trascrivi e cerca, in privato sul tuo Mac"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你的 Mac 上私密地录制、转写和搜索"
+          }
         }
       }
     },
@@ -4057,6 +5351,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registrazione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制中"
           }
         }
       }
@@ -4086,6 +5386,22 @@
             "state": "translated",
             "value": "Registrazione in corso..."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在录制…"
+          }
+        }
+      }
+    },
+    "Recording title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制标题"
+          }
         }
       }
     },
@@ -4113,6 +5429,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registrazioni archiviate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已存储录制"
+          }
+        }
+      }
+    },
+    "Recordings, transcripts, and summaries stay 100% local": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制、转写和摘要 100% 保留在本地"
           }
         }
       }
@@ -4142,6 +5474,12 @@
             "state": "translated",
             "value": "Registrazione… %d:%02d"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制中… %d:%02d"
+          }
         }
       }
     },
@@ -4169,6 +5507,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Perfeziona con Whisper dopo ogni registrazione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次录制后用 Whisper 精校"
           }
         }
       }
@@ -4198,6 +5542,12 @@
             "state": "translated",
             "value": "Aggiorna"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
         }
       }
     },
@@ -4225,6 +5575,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rinomina"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重命名"
           }
         }
       }
@@ -4254,6 +5610,12 @@
             "state": "translated",
             "value": "Rinomina %@"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重命名 %@"
+          }
         }
       }
     },
@@ -4281,6 +5643,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rinomina…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重命名…"
           }
         }
       }
@@ -4310,6 +5678,12 @@
             "state": "translated",
             "value": "Ripristina predefinito"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复默认"
+          }
         }
       }
     },
@@ -4337,6 +5711,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Riprendi registrazione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续录制"
           }
         }
       }
@@ -4366,6 +5746,12 @@
             "state": "translated",
             "value": "Riprendi registrazione"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续录制"
+          }
         }
       }
     },
@@ -4393,6 +5779,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ritrascrivi"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新转写"
           }
         }
       }
@@ -4422,6 +5814,12 @@
             "state": "translated",
             "value": "Mostra nel Finder"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在访达中显示"
+          }
         }
       }
     },
@@ -4449,6 +5847,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mostrali nel Finder per trascinarli nella chat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在访达中显示，然后拖入聊天"
           }
         }
       }
@@ -4478,6 +5882,12 @@
             "state": "translated",
             "value": "Revisione"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批注"
+          }
         }
       }
     },
@@ -4505,6 +5915,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esegue un passaggio completo di Whisper al termine della registrazione, sostituendo la trascrizione in tempo reale con la versione più accurata. Richiede il modello Whisper scaricato."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制停止后运行完整 Whisper 转写，用最准确的版本替换实时转写。需要先下载 Whisper 模型。"
           }
         }
       }
@@ -4534,6 +5950,12 @@
             "state": "translated",
             "value": "Salva"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
         }
       }
     },
@@ -4561,6 +5983,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Schermo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏幕"
+          }
+        }
+      }
+    },
+    "Screen Recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏幕录制"
+          }
+        }
+      }
+    },
+    "Search": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索"
+          }
+        }
+      }
+    },
+    "Search AI": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索 AI"
           }
         }
       }
@@ -4590,6 +6048,12 @@
             "state": "translated",
             "value": "Cerca registrazioni"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索录制"
+          }
         }
       }
     },
@@ -4617,6 +6081,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cerca registrazioni..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索录制…"
           }
         }
       }
@@ -4646,6 +6116,12 @@
             "state": "translated",
             "value": "Seleziona una registrazione per iniziare"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一条录制开始"
+          }
         }
       }
     },
@@ -4673,6 +6149,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seleziona uno o più file audio o video. Ogni file viene elaborato in sequenza attraverso trascrizione, riepilogo ed embedding — i file successivi al primo mostrano il badge In coda nell'elenco delle registrazioni."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个或多个音频/视频文件。每个文件会依次进行转写、摘要和向量化；第一个之后的文件会在录制列表中显示“排队中”标记。"
           }
         }
       }
@@ -4702,6 +6184,12 @@
             "state": "translated",
             "value": "Invia a %@"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送到 %@"
+          }
         }
       }
     },
@@ -4729,6 +6217,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Imposta un nome personalizzato per questo interlocutore. Lascia vuoto per ripristinare %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为此说话人设置自定义名称。留空则重置为 %@。"
           }
         }
       }
@@ -4758,6 +6252,12 @@
             "state": "translated",
             "value": "Configura l'IA on-device"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置本机 AI"
+          }
         }
       }
     },
@@ -4785,6 +6285,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Impostazioni"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
           }
         }
       }
@@ -4814,6 +6320,22 @@
             "state": "translated",
             "value": "Mostra file"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示文件"
+          }
+        }
+      }
+    },
+    "Show menu bar icon": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示菜单栏图标"
+          }
         }
       }
     },
@@ -4841,6 +6363,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Audio dell’app della finestra registrata"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所录制窗口应用的声音"
           }
         }
       }
@@ -4870,6 +6398,12 @@
             "state": "translated",
             "value": "Fonti"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源"
+          }
         }
       }
     },
@@ -4897,6 +6431,32 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cartella specifiche…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规格文件夹…"
+          }
+        }
+      }
+    },
+    "Speech": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音"
+          }
+        }
+      }
+    },
+    "Speech → text · ~1.5 GB": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音 → 文字 · 约 1.5 GB"
           }
         }
       }
@@ -4926,6 +6486,12 @@
             "state": "translated",
             "value": "Avvia sessione di apprendimento"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始反馈会话"
+          }
         }
       }
     },
@@ -4953,6 +6519,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avvia registrazione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始录制"
           }
         }
       }
@@ -4982,6 +6554,12 @@
             "state": "translated",
             "value": "Avvia registrazione…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始录制…"
+          }
         }
       }
     },
@@ -5009,6 +6587,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Avvia registrazione"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始录制"
           }
         }
       }
@@ -5038,6 +6622,12 @@
             "state": "translated",
             "value": "Avvio in corso…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动中…"
+          }
         }
       }
     },
@@ -5065,6 +6655,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
           }
         }
       }
@@ -5094,6 +6690,12 @@
             "state": "translated",
             "value": "Interrompi registrazione"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止录制"
+          }
         }
       }
     },
@@ -5121,6 +6723,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Interrompi la registrazione corrente"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止当前录制"
           }
         }
       }
@@ -5150,6 +6758,52 @@
             "state": "translated",
             "value": "Interrompi la registrazione (⌘⇧R)"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止当前录制（⌘⇧R）"
+          }
+        }
+      }
+    },
+    "Storage": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存储"
+          }
+        }
+      }
+    },
+    "Summaries & titles · ~2.4 GB": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摘要和标题 · 约 2.4 GB"
+          }
+        }
+      }
+    },
+    "Summary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摘要"
+          }
+        }
+      }
+    },
+    "Summary prompt": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摘要提示词"
+          }
         }
       }
     },
@@ -5177,6 +6831,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Audio di sistema"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统音频"
           }
         }
       }
@@ -5206,6 +6866,12 @@
             "state": "translated",
             "value": "Predefinito di sistema"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统默认"
+          }
         }
       }
     },
@@ -5230,6 +6896,12 @@
           }
         },
         "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM"
+          }
+        },
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "TOM"
@@ -5262,6 +6934,12 @@
             "state": "translated",
             "value": "TOM ha bisogno del microfono per registrare la tua voce. Attivalo per TOM in Impostazioni di Sistema › Privacy e sicurezza › Microfono, oppure disattiva il microfono nel pannello di registrazione per registrare solo l’audio di sistema."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM 需要麦克风来录制你的声音。请在“系统设置 › 隐私与安全性 › 麦克风”中为 TOM 开启，或在录制面板关闭麦克风，仅录制系统音频。"
+          }
         }
       }
     },
@@ -5289,6 +6967,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "TOM ha bisogno di due autorizzazioni per registrare"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM 需要两项权限才能录制"
           }
         }
       }
@@ -5318,6 +7002,22 @@
             "state": "translated",
             "value": "TOM — Libreria"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM — 资料库"
+          }
+        }
+      }
+    },
+    "Think AI": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "思考 AI"
+          }
         }
       }
     },
@@ -5345,6 +7045,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tre modelli, scaricati una sola volta. Insieme sostituiscono ciò che fanno le app di trascrizione in cloud — sul tuo Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "三个模型，一次下载。它们在你的 Mac 上完成云端转写应用的工作。"
           }
         }
       }
@@ -5374,6 +7080,22 @@
             "state": "translated",
             "value": "Traccia con marca temporale del runtime di TOM (registrazione, routing IA, download, errori). Utile per il debug di una build di release."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM 运行过程的时间戳日志（录制、AI 路由、下载、错误）。调试正式版本时有用。"
+          }
+        }
+      }
+    },
+    "Title prompt": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题提示词"
+          }
         }
       }
     },
@@ -5401,6 +7123,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Per risolvere, disattiva l'accelerazione hardware nel browser:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解决方法：在浏览器中关闭硬件加速："
           }
         }
       }
@@ -5430,6 +7158,42 @@
             "state": "translated",
             "value": "Compromesso: utilizzo della CPU leggermente più alto durante la riproduzione video."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代价：视频播放时 CPU 占用略高。"
+          }
+        }
+      }
+    },
+    "Transcribe live while recording": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制时实时转写"
+          }
+        }
+      }
+    },
+    "Transcribing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转写中"
+          }
+        }
+      }
+    },
+    "Transcript": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转写"
+          }
         }
       }
     },
@@ -5457,6 +7221,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trascrizione ancora in elaborazione: il parlato apparirà al termine."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转写仍在处理 — 完成后会显示语音内容。"
+          }
+        }
+      }
+    },
+    "Transcript streams in as you speak and is ready the moment the recording stops. Keeps the transcription model in memory during recording (~2 GB) — turn off on Macs with less than 16 GB if recordings stutter.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说话时实时生成转写，录制停止即就绪。录制期间会将转写模型保留在内存中（约 2 GB）；如果录制卡顿，内存小于 16 GB 的 Mac 建议关闭。"
           }
         }
       }
@@ -5486,6 +7266,12 @@
             "state": "translated",
             "value": "Trascrizione non riuscita: %@"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转写失败：%@"
+          }
         }
       }
     },
@@ -5513,6 +7299,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Prova una parola chiave diversa o cancella il campo di ricerca."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "换个关键词，或清空搜索框。"
           }
         }
       }
@@ -5542,6 +7334,12 @@
             "state": "translated",
             "value": "Attiva il microfono o l’audio di sistema per ottenere una trascrizione."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启麦克风或系统音频后才能生成转写。"
+          }
         }
       }
     },
@@ -5569,6 +7367,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Annulla ultimo segno"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销上一个标记"
           }
         }
       }
@@ -5598,6 +7402,12 @@
             "state": "translated",
             "value": "Riattiva microfono"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消静音麦克风"
+          }
         }
       }
     },
@@ -5625,6 +7435,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Riattiva microfono"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消静音麦克风"
           }
         }
       }
@@ -5654,6 +7470,12 @@
             "state": "translated",
             "value": "Carica registrazione…"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传录制…"
+          }
         }
       }
     },
@@ -5681,6 +7503,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Carica registrazione…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传录制…"
           }
         }
       }
@@ -5710,6 +7538,12 @@
             "state": "translated",
             "value": "Versione"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本"
+          }
         }
       }
     },
@@ -5737,6 +7571,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Versione %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %@"
+          }
+        }
+      }
+    },
+    "Video": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "视频"
           }
         }
       }
@@ -5766,6 +7616,32 @@
             "state": "translated",
             "value": "Video (.mp4)"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "视频（.mp4）"
+          }
+        }
+      }
+    },
+    "Voice AI": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音 AI"
+          }
+        }
+      }
+    },
+    "Voice AI (on-device transcription) and Search AI (semantic embeddings) always run on-device. Think AI is currently routed to %@ — summaries, action points, and Ask answers go through that provider's API. Local Qwen is optional in this mode.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音 AI（本机转写）和搜索 AI（语义向量）始终在本机运行。思考 AI 当前路由到 %@ — 摘要、待办和提问回答会经过该提供商的 API。此模式下本地 Qwen 可选。"
+          }
         }
       }
     },
@@ -5793,6 +7669,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nota vocale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语音笔记"
           }
         }
       }
@@ -5822,6 +7704,12 @@
             "state": "translated",
             "value": "Preparazione del modello di trascrizione — le prime parole appariranno a breve. La prima esecuzione dopo un aggiornamento può richiedere qualche minuto."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在预热转写模型，稍后会出现首批文字。更新后首次运行可能需要几分钟。"
+          }
         }
       }
     },
@@ -5850,6 +7738,12 @@
             "state": "translated",
             "value": "Benvenuto in TOM"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎使用 TOM"
+          }
         }
       }
     },
@@ -5874,6 +7768,12 @@
           }
         },
         "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper"
+          }
+        },
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "Whisper"
@@ -5906,6 +7806,22 @@
             "state": "translated",
             "value": "Whisper non è ancora scaricato. Apri Impostazioni → Modelli IA e completa prima il download del modello."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper 尚未下载。请先打开“设置 → AI 模型”完成模型下载。"
+          }
+        }
+      }
+    },
+    "Whisper large-v3-turbo — highest accuracy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper large-v3-turbo — 最高准确率"
+          }
         }
       }
     },
@@ -5933,6 +7849,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Finestra"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "窗口"
           }
         }
       }
@@ -5962,6 +7884,12 @@
             "state": "translated",
             "value": "Le parole appaiono mentre parli"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说话时实时显示文字"
+          }
         }
       }
     },
@@ -5989,6 +7917,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Potrebbe essere necessario riavviare TOM dopo aver concesso l'autorizzazione Registrazione schermo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授予屏幕录制权限后可能需要重启 TOM"
           }
         }
       }
@@ -6018,6 +7952,12 @@
             "state": "translated",
             "value": "È tutto pronto"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一切就绪"
+          }
         }
       }
     },
@@ -6045,6 +7985,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "La tua chiave API è archiviata nel portachiavi macOS su questo Mac. Trascrizioni e domande vengono inviate a %@ solo mentre questo backend è selezionato. Le registrazioni audio e l'indice di ricerca restano locali."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的 API 密钥存储在此 Mac 的 macOS 钥匙串中。仅当选择此后端时，转写和问题才会发送到 %@。音频录制和搜索索引仍保留在本地。"
           }
         }
       }
@@ -6074,6 +8020,12 @@
             "state": "translated",
             "value": "I tuoi dati non vengono mai archiviati sui nostri server."
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的数据绝不会存储在我们的服务器上。"
+          }
         }
       }
     },
@@ -6101,6 +8053,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "[Ottieni una chiave su %@](%@)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[在 %@ 获取密钥](%@)"
           }
         }
       }
@@ -6130,6 +8088,12 @@
             "state": "translated",
             "value": "scegli una finestra"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择窗口"
+          }
         }
       }
     },
@@ -6158,6 +8122,52 @@
             "state": "translated",
             "value": "tom"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tom"
+          }
+        }
+      }
+    },
+    "~%lldm %llds remaining": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余约 %lld 分 %lld 秒"
+          }
+        }
+      }
+    },
+    "~%llds remaining": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余约 %lld 秒"
+          }
+        }
+      }
+    },
+    "•••••••• (key stored in Keychain)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "••••••••（密钥已存储在钥匙串）"
+          }
+        }
+      }
+    },
+    "↩": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "↩"
+          }
         }
       }
     },
@@ -6185,6 +8195,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "⌥A annota · ⌥M segna · Esc annulla"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌥A 批注 · ⌥M 标记 · Esc 取消"
           }
         }
       }
