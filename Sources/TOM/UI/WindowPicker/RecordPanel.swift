@@ -174,7 +174,7 @@ struct RecordPanel: View {
         .frame(height: 262)
         .overlay {
             if (source == .screen ? appState.availableDisplays.isEmpty : windows.isEmpty) {
-                Text(source == .screen ? "No displays available" : "No windows available")
+                Text(source == .screen ? LocalizedStringKey("No displays available") : LocalizedStringKey("No windows available"))
                     .font(.system(size: 12))
                     .foregroundColor(.subtleText)
             }
@@ -207,7 +207,7 @@ struct RecordPanel: View {
 
             if mode != .voiceNote {
                 OptionRow(icon: "speaker.wave.2", title: "System audio", divider: true) {
-                    Text(source == .window ? "Sound from the recorded window's app" : "All sound playing on this Mac")
+                    Text(source == .window ? LocalizedStringKey("Sound from the recorded window's app") : LocalizedStringKey("All sound playing on this Mac"))
                 } trailing: {
                     Toggle("", isOn: setup.systemAudio).toggleStyle(.switch).controlSize(.small).labelsHidden().tint(.accent)
                 }

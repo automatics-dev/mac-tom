@@ -49,7 +49,7 @@ struct OnboardingView: View {
 
                 Spacer()
 
-                Button(step == totalSteps ? "Get Started" : "Next") {
+                Button(step == totalSteps ? LocalizedStringKey("Get Started") : LocalizedStringKey("Next")) {
                     if step == totalSteps {
                         tomLog("User action: Onboarding completed (Get Started)")
                         UserDefaults.standard.set(true, forKey: "tom.onboardingCompleted")
@@ -99,7 +99,7 @@ struct OnboardingView: View {
         }
     }
 
-    private func onboardingBullet(icon: String, text: String) -> some View {
+    private func onboardingBullet(icon: String, text: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 14))
@@ -167,7 +167,7 @@ struct OnboardingView: View {
         }
     }
 
-    private func permissionRow(icon: String, title: String, description: String, granted: Bool, action: @escaping () -> Void) -> some View {
+    private func permissionRow(icon: String, title: LocalizedStringKey, description: LocalizedStringKey, granted: Bool, action: @escaping () -> Void) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 18))
@@ -253,7 +253,7 @@ struct OnboardingView: View {
         }
     }
 
-    private func instructionRow(icon: String, text: String) -> some View {
+    private func instructionRow(icon: String, text: LocalizedStringKey) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 14))

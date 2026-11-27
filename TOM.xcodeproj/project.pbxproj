@@ -57,6 +57,7 @@
 		0AFC11052FA35C3C00A1843C /* StreamingTranscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AFC11062FA35C3C00A1843C /* StreamingTranscription.swift */; };
 		0BFA11012FA35C3C00A1843C /* ParakeetTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BFA11022FA35C3C00A1843C /* ParakeetTranscriber.swift */; };
 		0BFA11072FA35C3C00A1843C /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0BFA11062FA35C3C00A1843C /* Localizable.xcstrings */; };
+		0BFA11092FA35C3C00A1843C /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 0BFA11082FA35C3C00A1843C /* InfoPlist.xcstrings */; };
 		0CFA12012FA35C3C00A1843C /* HallucinationFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CFA12112FA35C3C00A1843C /* HallucinationFilterTests.swift */; };
 		0CFA12022FA35C3C00A1843C /* SilenceGapFoldingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CFA12122FA35C3C00A1843C /* SilenceGapFoldingTests.swift */; };
 		0CFA12032FA35C3C00A1843C /* StreamingChunkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CFA12132FA35C3C00A1843C /* StreamingChunkTests.swift */; };
@@ -134,6 +135,7 @@
 		0AFC11062FA35C3C00A1843C /* StreamingTranscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingTranscription.swift; sourceTree = "<group>"; };
 		0BFA11022FA35C3C00A1843C /* ParakeetTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParakeetTranscriber.swift; sourceTree = "<group>"; };
 		0BFA11062FA35C3C00A1843C /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		0BFA11082FA35C3C00A1843C /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		0CFA12102FA35C3C00A1843C /* TOMTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TOMTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0CFA12112FA35C3C00A1843C /* HallucinationFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HallucinationFilterTests.swift; sourceTree = "<group>"; };
 		0CFA12122FA35C3C00A1843C /* SilenceGapFoldingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SilenceGapFoldingTests.swift; sourceTree = "<group>"; };
@@ -326,6 +328,7 @@
 				08FC66272FA35C3C00A1843C /* tomlogo.svg */,
 				08FC66282FA35C3C00A1843C /* VERSION */,
 				0BFA11062FA35C3C00A1843C /* Localizable.xcstrings */,
+				0BFA11082FA35C3C00A1843C /* InfoPlist.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -605,6 +608,7 @@
 				es,
 				fr,
 				it,
+				zh-Hans,
 			);
 			mainGroup = 08FC65F62FA359D200A1843C;
 			minimizedProjectReferenceProxies = 1;
@@ -642,6 +646,7 @@
 				08FC66A32FA35C3C00A1843C /* tomlogo.svg in Resources */,
 				08FC66A42FA35C3C00A1843C /* AppIcon.icns in Resources */,
 				0BFA11072FA35C3C00A1843C /* Localizable.xcstrings in Resources */,
+				0BFA11092FA35C3C00A1843C /* InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

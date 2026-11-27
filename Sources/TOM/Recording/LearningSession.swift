@@ -600,7 +600,7 @@ private struct LearningHUD: View {
                         .background(RoundedRectangle(cornerRadius: 6).fill(session.tool == tool ? Color.accent.opacity(0.35) : .clear))
                 }
                 .buttonStyle(.plain)
-                .help(tool.rawValue.capitalized)
+                .help(LocalizedStringKey(tool.rawValue.capitalized))
             }
             divider
             TextField("Label last mark", text: Binding(get: { session.lastLabel }, set: { session.lastLabel = $0 }))

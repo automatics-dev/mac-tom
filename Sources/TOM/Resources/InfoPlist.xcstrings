@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSMicrophoneUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM needs microphone access to record your voice in meetings, voice notes and feedback sessions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM 需要麦克风权限，以便在会议、语音笔记和反馈会话中录制你的声音。"
+          }
+        }
+      }
+    },
+    "NSScreenCaptureUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM needs screen recording access to record windows and screens, with their audio."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOM 需要屏幕录制权限，以便录制窗口和屏幕及其音频。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

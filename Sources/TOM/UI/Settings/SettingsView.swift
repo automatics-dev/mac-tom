@@ -10,7 +10,7 @@ struct SettingsView: View {
     @StateObject private var cloudBrain = CloudBrainPreferences.shared
 
     @State private var selectedTab: SettingsTab = .general
-    @State private var diskUsage: String = "Calculating…"
+    @State private var diskUsage: String = String(localized: "Calculating…")
     @State private var advancedExpanded = false
     @State private var summaryPromptDraft: String = ""
     @State private var titlePromptDraft: String = ""
@@ -266,8 +266,8 @@ struct SettingsView: View {
 
     @ViewBuilder
     private func promptEditor(
-        title: String,
-        description: String,
+        title: LocalizedStringKey,
+        description: LocalizedStringKey,
         promptName: String,
         text: Binding<String>
     ) -> some View {
@@ -411,9 +411,9 @@ struct SettingsView: View {
     private var modelsIntroCopy: String {
         if cloudBrain.isActive {
             let provider = cloudBrain.backend == .openai ? "OpenAI" : "Anthropic"
-            return "Voice AI (on-device transcription) and Search AI (semantic embeddings) always run on-device. Think AI is currently routed to \(provider) — summaries, action points, and Ask answers go through that provider's API. Local Qwen is optional in this mode."
+            return String(localized: "Voice AI (on-device transcription) and Search AI (semantic embeddings) always run on-device. Think AI is currently routed to \(provider) — summaries, action points, and Ask answers go through that provider's API. Local Qwen is optional in this mode.")
         }
-        return "All models run locally on Apple Silicon — your recordings never leave your Mac. You can optionally route Think AI to OpenAI's or Anthropic's most capable model below."
+        return String(localized: "All models run locally on Apple Silicon — your recordings never leave your Mac. You can optionally route Think AI to OpenAI's or Anthropic's most capable model below.")
     }
 
     /// Voice AI = transcription. Two on-device engines: Parakeet (real-time,
@@ -547,7 +547,7 @@ struct SettingsView: View {
 
     private func thinkBackendShortLabel(_ b: CloudBrainBackend) -> String {
         switch b {
-        case .local:     return "Local"
+        case .local:     return String(localized: "Local")
         case .openai:    return "OpenAI"
         case .anthropic: return "Anthropic"
         }
@@ -738,7 +738,7 @@ struct SettingsView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                SecureField(hasKey ? "•••••••• (key stored in Keychain)" : placeholder, text: draft)
+                SecureField(hasKey ? LocalizedStringKey("•••••••• (key stored in Keychain)") : LocalizedStringKey(placeholder), text: draft)
                     .textFieldStyle(.roundedBorder)
                     .disabled(isValidating.wrappedValue)
                     .onChange(of: draft.wrappedValue) { _, _ in
@@ -934,8 +934,8 @@ struct SettingsView: View {
     // MARK: - Helpers
 
     @ViewBuilder
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title.uppercased())
+    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
+        Text(title).textCase(.uppercase)
             .font(.caption.weight(.semibold))
             .foregroundStyle(.secondary)
             .padding(.top, 8)
@@ -953,8 +953,8 @@ struct SettingsView: View {
     /// a small switch on the right — the native macOS Settings pattern.
     @ViewBuilder
     private func settingsToggleRow(
-        _ title: String,
-        description: String? = nil,
+        _ title: LocalizedStringKey,
+        description: LocalizedStringKey? = nil,
         isOn: Binding<Bool>
     ) -> some View {
         HStack(alignment: .top, spacing: 16) {
@@ -1019,10 +1019,10 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .general: "General"
-        case .ai:      "AI Models"
-        case .storage: "Storage"
-        case .about:   "About"
+        case .general: String(localized: "General")
+        case .ai:      String(localized: "AI Models")
+        case .storage: String(localized: "Storage")
+        case .about:   String(localized: "About")
         }
     }
     var icon: String {
@@ -1102,7 +1102,7 @@ struct UnifiedModelDownloadCard: View {
     }
 
     @ViewBuilder
-    private func modelIcon(systemName: String, label: String, status: ModelDownloadManager.Status) -> some View {
+    private func modelIcon(systemName: String, label: LocalizedStringKey, status: ModelDownloadManager.Status) -> some View {
         VStack(spacing: 4) {
             ZStack {
                 Image(systemName: systemName)
@@ -1156,8 +1156,8 @@ struct UnifiedModelDownloadCard: View {
     }
 
     private var downloadingTitle: String {
-        if let title = downloads.currentlyDownloadingTitle { return "Downloading \(title)…" }
-        return "Preparing…"
+        if let title = downloads.currentlyDownloadingTitle { return String(localized: "Downloading \(title)…") }
+        return String(localized: "Preparing…")
     }
 
     @ViewBuilder
@@ -1189,7 +1189,7 @@ struct UnifiedModelDownloadCard: View {
         fmt.countStyle = .file
         let done = fmt.string(fromByteCount: downloads.aggregateBytesDownloaded)
         let total = fmt.string(fromByteCount: ModelDownloadManager.bytesTotal)
-        return "\(done) of \(total)"
+        return String(localized: "\(done) of \(total)")
     }
 
     private var etaText: String? {
@@ -1197,8 +1197,8 @@ struct UnifiedModelDownloadCard: View {
         let minutes = Int(eta) / 60
         let seconds = Int(eta) % 60
         if minutes >= 1 {
-            return "~\(minutes)m \(seconds)s remaining"
+            return String(localized: "~\(minutes)m \(seconds)s remaining")
         }
-        return "~\(seconds)s remaining"
+        return String(localized: "~\(seconds)s remaining")
     }
 }

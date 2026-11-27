@@ -69,7 +69,7 @@ struct SidebarColumn: View {
                 .padding(.bottom, 8)
 
             SidebarGroupRow(
-                name: "All Recordings",
+                name: String(localized: "All Recordings"),
                 icon: "tray.full",
                 count: appState.meetings.count,
                 color: .accent,

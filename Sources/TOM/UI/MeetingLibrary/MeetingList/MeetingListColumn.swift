@@ -17,9 +17,9 @@ struct MeetingListColumn: View {
 
     private var selectedGroupName: String {
         if let gid = appState.selectedGroupId {
-            return appState.groups.first { $0.id == gid }?.name ?? "Group"
+            return appState.groups.first { $0.id == gid }?.name ?? String(localized: "Group")
         }
-        return "All Recordings"
+        return String(localized: "All Recordings")
     }
 
     var body: some View {

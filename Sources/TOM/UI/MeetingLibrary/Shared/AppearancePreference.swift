@@ -53,9 +53,9 @@ enum AppearancePreference: String, CaseIterable {
 
     var label: String {
         switch self {
-        case .system: "Appearance: System"
-        case .light: "Appearance: Light"
-        case .dark: "Appearance: Dark"
+        case .system: String(localized: "Appearance: System")
+        case .light: String(localized: "Appearance: Light")
+        case .dark: String(localized: "Appearance: Dark")
         }
     }
 

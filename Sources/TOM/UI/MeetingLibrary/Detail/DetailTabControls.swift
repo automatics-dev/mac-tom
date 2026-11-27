@@ -9,7 +9,7 @@ enum DetailTab {
 // MARK: - Tab Button
 
 struct TabButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let icon: String
     let isSelected: Bool
     let action: () -> Void
@@ -46,8 +46,8 @@ struct StatePill: View {
     }
     private var label: String {
         switch state {
-        case .recording: "Recording"; case .transcribing: "Transcribing"; case .processing: "Processing"
-        case .completed: "Completed"; case .failed: "Failed"
+        case .recording: String(localized: "Recording"); case .transcribing: String(localized: "Transcribing"); case .processing: String(localized: "Processing")
+        case .completed: String(localized: "Completed"); case .failed: String(localized: "Failed")
         }
     }
     var body: some View {
